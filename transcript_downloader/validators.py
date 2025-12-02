@@ -86,7 +86,8 @@ def is_safe_path_component(value: str) -> bool:
     # Check for path traversal attempts
     if ".." in value or value.startswith("/") or value.startswith("\\"):
         return False
-    # Check for other problematic characters
-    if any(c in value for c in [":", "*", "?", '"', "<", ">", "|", "\0"]):
+    # Check for other problematic characters (use set for O(1) lookup)
+    prohibited_chars = {":", "*", "?", '"', "<", ">", "|", "\0"}
+    if any(c in prohibited_chars for c in value):
         return False
     return True

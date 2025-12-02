@@ -75,7 +75,39 @@ Examples:
         help="Azure AD Tenant ID",
     )
 
+    parser.add_argument(
+        "--login-hint",
+        type=str,
+        default=config.LOGIN_HINT,
+        help="Email hint for authentication login",
+    )
+
     return parser.parse_args()
+
+
+def validate_required_config(args: argparse.Namespace) -> None:
+    """
+    Validate that all required configuration values are set.
+
+    Args:
+        args: Parsed command line arguments.
+
+    Raises:
+        ValueError: If required configuration is missing.
+    """
+    missing = []
+
+    if not args.org_url:
+        missing.append("Organization URL (--org-url or D365_ORGANIZATION_URL env var)")
+    if not args.tenant:
+        missing.append("Tenant ID (--tenant or D365_TENANT_ID env var)")
+    if not args.workstream:
+        missing.append("Workstream ID (--workstream or D365_WORKSTREAM_ID env var)")
+
+    if missing:
+        raise ValueError(
+            "Missing required configuration:\n  - " + "\n  - ".join(missing)
+        )
 
 
 def main() -> int:
@@ -91,13 +123,17 @@ def main() -> int:
     print("Dynamics 365 Transcript Downloader")
     print("=" * 60)
     print()
-    print(f"Organization URL: {args.org_url}")
-    print(f"Workstream ID: {args.workstream}")
-    print(f"Days to fetch: {args.days}")
-    print(f"Output folder: {args.output}")
-    print()
 
     try:
+        # Validate required configuration
+        validate_required_config(args)
+
+        print(f"Organization URL: {args.org_url}")
+        print(f"Workstream ID: {args.workstream}")
+        print(f"Days to fetch: {args.days}")
+        print(f"Output folder: {args.output}")
+        print()
+
         # Step 1: Authenticate
         print("-" * 40)
         print("Step 1: Authentication")
@@ -106,6 +142,7 @@ def main() -> int:
         authenticator = DynamicsAuthenticator(
             tenant_id=args.tenant,
             organization_url=args.org_url,
+            login_hint=args.login_hint,
         )
         access_token = authenticator.get_access_token()
 

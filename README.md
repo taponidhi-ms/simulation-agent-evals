@@ -18,43 +18,49 @@ pip install -r requirements.txt
 
 ## Configuration
 
-### Environment Variables (Recommended)
+All organization-specific settings must be provided via environment variables or command-line arguments. No values are hardcoded.
 
-Configuration can be set via environment variables for security:
+### Required Configuration
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `D365_ORGANIZATION_URL` | Dynamics 365 organization URL | https://aurorabapenv89059.crm10.dynamics.com |
-| `D365_ORGANIZATION_ID` | Organization ID | (configured default) |
-| `D365_TENANT_ID` | Azure AD tenant ID | (configured default) |
-| `D365_WORKSTREAM_ID` | Workstream ID to fetch from | (configured default) |
-| `D365_CLIENT_ID` | Azure AD client ID | Power Platform first-party app |
-| `D365_LOGIN_HINT` | Email hint for login | (configured default) |
-| `D365_OUTPUT_FOLDER` | Output folder path | transcripts_output |
-| `D365_DAYS_TO_FETCH` | Days to look back | 7 |
-| `D365_MAX_CONTENT_SIZE` | Max content size (bytes) | 52428800 (50MB) |
+The following settings are **required** and must be provided:
 
-Example:
+| Setting | Environment Variable | CLI Argument | Description |
+|---------|---------------------|--------------|-------------|
+| Organization URL | `D365_ORGANIZATION_URL` | `--org-url` | Your Dynamics 365 organization URL (e.g., `https://yourorg.crm.dynamics.com`) |
+| Tenant ID | `D365_TENANT_ID` | `--tenant` | Your Azure AD tenant ID (GUID format) |
+| Workstream ID | `D365_WORKSTREAM_ID` | `--workstream` | The workstream ID to fetch conversations from (GUID format) |
+
+### Optional Configuration
+
+| Setting | Environment Variable | CLI Argument | Default |
+|---------|---------------------|--------------|---------|
+| Login Hint | `D365_LOGIN_HINT` | `--login-hint` | (none) |
+| Output Folder | `D365_OUTPUT_FOLDER` | `--output` | `transcripts_output` |
+| Days to Fetch | `D365_DAYS_TO_FETCH` | `--days` | `7` |
+| Client ID | `D365_CLIENT_ID` | - | Power Platform first-party app |
+| Max Content Size | `D365_MAX_CONTENT_SIZE` | - | 52428800 (50MB) |
+
+### Example Usage
+
+Using environment variables:
 ```bash
-export D365_ORGANIZATION_URL="https://myorg.crm.dynamics.com"
-export D365_TENANT_ID="your-tenant-id"
-export D365_WORKSTREAM_ID="your-workstream-id"
+export D365_ORGANIZATION_URL="https://yourorg.crm.dynamics.com"
+export D365_TENANT_ID="your-tenant-id-guid"
+export D365_WORKSTREAM_ID="your-workstream-id-guid"
+export D365_LOGIN_HINT="user@yourdomain.com"
 python download_transcripts.py
 ```
 
-### Default Configuration
-
-Default values are set in `transcript_downloader/config.py` and will be used if environment variables are not set.
+Using command-line arguments:
+```bash
+python download_transcripts.py \
+    --org-url "https://yourorg.crm.dynamics.com" \
+    --tenant "your-tenant-id-guid" \
+    --workstream "your-workstream-id-guid" \
+    --login-hint "user@yourdomain.com"
+```
 
 ## Usage
-
-### Basic Usage
-
-Run the script with default configuration:
-
-```bash
-python download_transcripts.py
-```
 
 ### Command Line Options
 
@@ -63,11 +69,12 @@ python download_transcripts.py --help
 ```
 
 Available options:
+- `--org-url`: Dynamics 365 Organization URL (required)
+- `--tenant`: Azure AD Tenant ID (required)
+- `--workstream`: Workstream ID to fetch conversations from (required)
+- `--login-hint`: Email hint for authentication login
 - `--days`: Number of days to look back (default: 7)
 - `--output`: Output folder for transcript files (default: transcripts_output)
-- `--workstream`: Workstream ID to fetch conversations from
-- `--org-url`: Dynamics 365 Organization URL
-- `--tenant`: Azure AD Tenant ID
 
 ### Examples
 
@@ -81,17 +88,12 @@ Save transcripts to a custom folder:
 python download_transcripts.py --output my_transcripts
 ```
 
-Use a different workstream:
-```bash
-python download_transcripts.py --workstream <workstream-guid>
-```
-
 ## Authentication
 
 The script uses interactive browser authentication via MSAL (Microsoft Authentication Library). When you run the script:
 
 1. A browser window will open
-2. Sign in with your Microsoft account (the configured login hint will be pre-filled)
+2. Sign in with your Microsoft account (the configured login hint will be pre-filled if provided)
 3. Grant the necessary permissions
 4. The script will receive an access token and begin downloading transcripts
 
@@ -111,11 +113,12 @@ transcript_{timestamp}_{conversation_id}_{title}.json
 
 ```
 transcript_downloader/
-├── __init__.py          # Package initialization
-├── config.py            # Configuration settings
-├── auth.py              # Authentication module (MSAL)
-├── dataverse_client.py  # Dataverse Web API client
-└── transcript_downloader.py  # Main transcript download logic
+├── __init__.py              # Package initialization
+├── config.py                # Configuration settings
+├── auth.py                  # Authentication module (MSAL)
+├── dataverse_client.py      # Dataverse Web API client
+├── transcript_downloader.py # Main transcript download logic
+└── validators.py            # Input validation utilities
 ```
 
 ## How It Works

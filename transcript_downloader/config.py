@@ -2,41 +2,55 @@
 
 import os
 
+
+def _get_required_env(name: str, description: str) -> str:
+    """Get a required environment variable or raise an error with helpful message."""
+    value = os.environ.get(name)
+    if not value:
+        raise EnvironmentError(
+            f"Missing required environment variable: {name}\n"
+            f"Description: {description}\n"
+            f"Please set this variable before running the script."
+        )
+    return value
+
+
+def _get_env(name: str, default: str) -> str:
+    """Get an environment variable with a default value."""
+    return os.environ.get(name, default)
+
+
 # Dynamics 365 Organization Settings (from environment variables)
-ORGANIZATION_URL = os.environ.get(
-    "D365_ORGANIZATION_URL", "https://aurorabapenv89059.crm10.dynamics.com"
-)
-ORGANIZATION_ID = os.environ.get(
-    "D365_ORGANIZATION_ID", "407ce31e-0a98-f011-bbc9-6045bd09e9c3"
-)
-TENANT_ID = os.environ.get("D365_TENANT_ID", "8f08bcba-e79b-4aec-ba55-e46e7343c5f5")
+# Set these environment variables before running:
+#   D365_ORGANIZATION_URL - e.g., "https://yourorg.crm.dynamics.com"
+#   D365_TENANT_ID - Your Azure AD tenant ID
+#   D365_WORKSTREAM_ID - The workstream ID to fetch conversations from
+ORGANIZATION_URL = _get_env("D365_ORGANIZATION_URL", "")
+ORGANIZATION_ID = _get_env("D365_ORGANIZATION_ID", "")
+TENANT_ID = _get_env("D365_TENANT_ID", "")
 
 # Workstream Settings (from environment variable)
-WORKSTREAM_ID = os.environ.get(
-    "D365_WORKSTREAM_ID", "bf8ebd2e-9043-fdeb-311f-d2fa48afc455"
-)
+WORKSTREAM_ID = _get_env("D365_WORKSTREAM_ID", "")
 
 # Authentication Settings
 # Using the well-known Power Platform / Dynamics 365 first-party app client ID
 # This enables interactive browser login without requiring app registration
-CLIENT_ID = os.environ.get("D365_CLIENT_ID", "51f81489-12ee-4a9e-aaae-a2591f45987d")
+CLIENT_ID = _get_env("D365_CLIENT_ID", "51f81489-12ee-4a9e-aaae-a2591f45987d")
 
 # User login hint (from environment variable)
-LOGIN_HINT = os.environ.get(
-    "D365_LOGIN_HINT", "Auroraserviceaccount1@ccaasdev.onmicrosoft.com"
-)
+LOGIN_HINT = _get_env("D365_LOGIN_HINT", "")
 
 # API Settings
 API_VERSION = "v9.2"
 
 # Output Settings
-OUTPUT_FOLDER = os.environ.get("D365_OUTPUT_FOLDER", "transcripts_output")
+OUTPUT_FOLDER = _get_env("D365_OUTPUT_FOLDER", "transcripts_output")
 
 # Time Range Settings (in days)
-DAYS_TO_FETCH = int(os.environ.get("D365_DAYS_TO_FETCH", "7"))
+DAYS_TO_FETCH = int(_get_env("D365_DAYS_TO_FETCH", "7"))
 
 # Batch size for pagination
 PAGE_SIZE = 50
 
 # Maximum base64 content size (in bytes) - 50MB default
-MAX_CONTENT_SIZE = int(os.environ.get("D365_MAX_CONTENT_SIZE", str(50 * 1024 * 1024)))
+MAX_CONTENT_SIZE = int(_get_env("D365_MAX_CONTENT_SIZE", str(50 * 1024 * 1024)))
