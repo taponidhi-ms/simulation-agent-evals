@@ -8,6 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 from . import config
 from .dataverse_client import DataverseClient
+from .validators import escape_xml_value, is_safe_path_component, validate_guid
 
 
 class TranscriptDownloader:
@@ -19,6 +20,7 @@ class TranscriptDownloader:
         workstream_id: str = config.WORKSTREAM_ID,
         output_folder: str = config.OUTPUT_FOLDER,
         days_to_fetch: int = config.DAYS_TO_FETCH,
+        max_content_size: int = config.MAX_CONTENT_SIZE,
     ):
         """
         Initialize the transcript downloader.
@@ -28,11 +30,14 @@ class TranscriptDownloader:
             workstream_id: ID of the workstream to fetch conversations from.
             output_folder: Folder to save transcript files.
             days_to_fetch: Number of days to look back for conversations.
+            max_content_size: Maximum size in bytes for base64 content.
         """
+        # Validate workstream_id is a valid GUID
+        self.workstream_id = validate_guid(workstream_id, "workstream_id")
         self.client = client
-        self.workstream_id = workstream_id
-        self.output_folder = output_folder
+        self.output_folder = os.path.abspath(output_folder)
         self.days_to_fetch = days_to_fetch
+        self.max_content_size = max_content_size
 
         # Ensure output folder exists
         os.makedirs(self.output_folder, exist_ok=True)
@@ -48,7 +53,11 @@ class TranscriptDownloader:
         date_threshold = datetime.now(timezone.utc) - timedelta(days=self.days_to_fetch)
         date_str = date_threshold.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        # Build FetchXML query
+        # Escape values for safe XML usage (workstream_id already validated as GUID)
+        safe_workstream_id = escape_xml_value(self.workstream_id)
+        safe_date_str = escape_xml_value(date_str)
+
+        # Build FetchXML query with escaped values
         fetch_xml = f"""
         <fetch>
             <entity name='msdyn_ocliveworkitem'>
@@ -57,8 +66,8 @@ class TranscriptDownloader:
                 <attribute name='createdon' />
                 <attribute name='msdyn_liveworkstreamid' />
                 <filter type='and'>
-                    <condition attribute='msdyn_liveworkstreamid' operator='eq' value='{self.workstream_id}'/>
-                    <condition attribute='createdon' operator='ge' value='{date_str}'/>
+                    <condition attribute='msdyn_liveworkstreamid' operator='eq' value='{safe_workstream_id}'/>
+                    <condition attribute='createdon' operator='ge' value='{safe_date_str}'/>
                 </filter>
                 <order attribute='createdon' descending='true' />
             </entity>
@@ -86,9 +95,12 @@ class TranscriptDownloader:
         Returns:
             Transcript record or None if not found.
         """
+        # Validate conversation_id is a valid GUID to prevent injection
+        validated_id = validate_guid(conversation_id, "conversation_id")
+
         # Query transcripts linked to this conversation
         # The field linking transcript to liveworkitem is _msdyn_liveworkitemid_value
-        filter_query = f"_msdyn_liveworkitemid_value eq {conversation_id}"
+        filter_query = f"_msdyn_liveworkitemid_value eq {validated_id}"
 
         transcripts = self.client.query_entities(
             entity_name="msdyn_transcript",
@@ -113,8 +125,11 @@ class TranscriptDownloader:
             Decoded transcript content as string, or None if not found.
         """
         try:
+            # Validate transcript_id is a valid GUID to prevent injection
+            validated_id = validate_guid(transcript_id, "transcript_id")
+
             # The annotation's objectid should reference the transcript
-            filter_query = f"_objectid_value eq {transcript_id}"
+            filter_query = f"_objectid_value eq {validated_id}"
 
             annotations = self.client.query_entities(
                 entity_name="annotation",
@@ -129,6 +144,11 @@ class TranscriptDownloader:
             document_body = annotation.get("documentbody")
 
             if not document_body:
+                return None
+
+            # Check content size before decoding to prevent memory issues
+            if len(document_body) > self.max_content_size:
+                print(f"  Warning: Content size exceeds limit ({len(document_body)} bytes)")
                 return None
 
             # Decode base64 content
@@ -175,6 +195,8 @@ class TranscriptDownloader:
         """
         # Remove or replace invalid characters
         sanitized = re.sub(r'[<>:"/\\|?*]', "_", name)
+        # Remove any path traversal attempts
+        sanitized = sanitized.replace("..", "_")
         # Limit length
         return sanitized[:100]
 
@@ -196,7 +218,13 @@ class TranscriptDownloader:
 
         Returns:
             Path to the saved file.
+
+        Raises:
+            ValueError: If the resulting path is outside the output folder.
         """
+        # Validate conversation_id format
+        validated_id = validate_guid(conversation_id, "conversation_id")
+
         # Build filename
         timestamp = ""
         if created_on:
@@ -209,10 +237,17 @@ class TranscriptDownloader:
 
         title_part = ""
         if conversation_title:
-            title_part = f"_{self._sanitize_filename(conversation_title)}"
+            sanitized_title = self._sanitize_filename(conversation_title)
+            # Additional validation for path safety
+            if is_safe_path_component(sanitized_title):
+                title_part = f"_{sanitized_title}"
 
-        filename = f"transcript_{timestamp}_{conversation_id[:8]}{title_part}.json"
-        filepath = os.path.join(self.output_folder, filename)
+        filename = f"transcript_{timestamp}_{validated_id[:8]}{title_part}.json"
+        filepath = os.path.abspath(os.path.join(self.output_folder, filename))
+
+        # Verify the file path is within the output folder (prevent path traversal)
+        if not filepath.startswith(self.output_folder):
+            raise ValueError(f"Path traversal detected: {filepath}")
 
         # Try to parse as JSON to format nicely
         try:

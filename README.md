@@ -18,14 +18,33 @@ pip install -r requirements.txt
 
 ## Configuration
 
-The default configuration is set in `transcript_downloader/config.py`. You can modify:
+### Environment Variables (Recommended)
 
-- `ORGANIZATION_URL`: Your Dynamics 365 organization URL
-- `ORGANIZATION_ID`: Your organization ID
-- `TENANT_ID`: Your Azure AD tenant ID
-- `WORKSTREAM_ID`: The workstream ID to fetch conversations from
-- `OUTPUT_FOLDER`: Where to save the transcript files
-- `DAYS_TO_FETCH`: Number of days to look back for conversations
+Configuration can be set via environment variables for security:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `D365_ORGANIZATION_URL` | Dynamics 365 organization URL | https://aurorabapenv89059.crm10.dynamics.com |
+| `D365_ORGANIZATION_ID` | Organization ID | (configured default) |
+| `D365_TENANT_ID` | Azure AD tenant ID | (configured default) |
+| `D365_WORKSTREAM_ID` | Workstream ID to fetch from | (configured default) |
+| `D365_CLIENT_ID` | Azure AD client ID | Power Platform first-party app |
+| `D365_LOGIN_HINT` | Email hint for login | (configured default) |
+| `D365_OUTPUT_FOLDER` | Output folder path | transcripts_output |
+| `D365_DAYS_TO_FETCH` | Days to look back | 7 |
+| `D365_MAX_CONTENT_SIZE` | Max content size (bytes) | 52428800 (50MB) |
+
+Example:
+```bash
+export D365_ORGANIZATION_URL="https://myorg.crm.dynamics.com"
+export D365_TENANT_ID="your-tenant-id"
+export D365_WORKSTREAM_ID="your-workstream-id"
+python download_transcripts.py
+```
+
+### Default Configuration
+
+Default values are set in `transcript_downloader/config.py` and will be used if environment variables are not set.
 
 ## Usage
 
