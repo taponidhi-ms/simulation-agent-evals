@@ -22,6 +22,7 @@ class TranscriptDownloader:
         output_folder: str = config.OUTPUT_FOLDER,
         days_to_fetch: int = config.DAYS_TO_FETCH,
         max_content_size: int = config.MAX_CONTENT_SIZE,
+        max_conversations: int | None = None,
     ):
         """
         Initialize the transcript downloader.
@@ -32,13 +33,34 @@ class TranscriptDownloader:
             output_folder: Folder to save transcript files.
             days_to_fetch: Number of days to look back for conversations.
             max_content_size: Maximum size in bytes for base64 content.
+            max_conversations: Maximum number of conversations to download (required, 1-1000).
+
+        Raises:
+            ValueError: If max_conversations is not set or is outside the valid range.
         """
         # Validate workstream_id is a valid GUID
         self.workstream_id = validate_guid(workstream_id, "workstream_id")
+        
+        # Validate max_conversations
+        if max_conversations is None:
+            raise ValueError(
+                "max_conversations is required. Please set D365_MAX_CONVERSATIONS environment variable "
+                "or use --max-conversations argument (valid range: 1-1000)"
+            )
+        
+        if not isinstance(max_conversations, int):
+            raise ValueError(f"max_conversations must be an integer, got {type(max_conversations).__name__}")
+        
+        if max_conversations < 1 or max_conversations > 1000:
+            raise ValueError(
+                f"max_conversations must be between 1 and 1000, got {max_conversations}"
+            )
+        
         self.client = client
         self.output_folder = os.path.abspath(output_folder)
         self.days_to_fetch = days_to_fetch
         self.max_content_size = max_content_size
+        self.max_conversations = max_conversations
 
         # Ensure output folder exists
         os.makedirs(self.output_folder, exist_ok=True)
@@ -60,15 +82,17 @@ class TranscriptDownloader:
 
         # Build FetchXML query with escaped values
         fetch_xml = f"""
-        <fetch>
+        <fetch top='{self.max_conversations}'>
             <entity name='msdyn_ocliveworkitem'>
                 <attribute name='msdyn_ocliveworkitemid' />
                 <attribute name='msdyn_title' />
                 <attribute name='createdon' />
                 <attribute name='msdyn_liveworkstreamid' />
+                <attribute name='statecode' />
                 <filter type='and'>
                     <condition attribute='msdyn_liveworkstreamid' operator='eq' value='{safe_workstream_id}'/>
                     <condition attribute='createdon' operator='ge' value='{safe_date_str}'/>
+                    <condition attribute='statecode' operator='eq' value='1'/>
                 </filter>
                 <order attribute='createdon' descending='true' />
             </entity>
@@ -76,7 +100,8 @@ class TranscriptDownloader:
         """
 
         print(f"Fetching conversations from workstream {self.workstream_id}...")
-        print(f"Looking for conversations created in the last {self.days_to_fetch} days...")
+        print(f"Looking for closed conversations created in the last {self.days_to_fetch} days...")
+        print(f"Limiting query to {self.max_conversations} conversations...")
 
         raw_conversations = self.client.execute_fetch_xml(
             entity_name="msdyn_ocliveworkitem",

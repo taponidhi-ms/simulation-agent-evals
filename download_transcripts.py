@@ -82,6 +82,21 @@ Examples:
         help="Email hint for authentication login",
     )
 
+    # Get default from config, handling empty string case
+    default_max_conversations = None
+    if config.MAX_CONVERSATIONS:
+        try:
+            default_max_conversations = int(config.MAX_CONVERSATIONS)
+        except (ValueError, TypeError):
+            default_max_conversations = None
+    
+    parser.add_argument(
+        "--max-conversations",
+        type=int,
+        default=default_max_conversations,
+        help="Maximum number of conversations to download (required, range: 1-1000)",
+    )
+
     return parser.parse_args()
 
 
@@ -93,7 +108,7 @@ def validate_required_config(args: argparse.Namespace) -> None:
         args: Parsed command line arguments.
 
     Raises:
-        ValueError: If required configuration is missing.
+        ValueError: If required configuration is missing or invalid.
     """
     missing = []
 
@@ -103,10 +118,18 @@ def validate_required_config(args: argparse.Namespace) -> None:
         missing.append("Tenant ID (--tenant or D365_TENANT_ID env var)")
     if not args.workstream:
         missing.append("Workstream ID (--workstream or D365_WORKSTREAM_ID env var)")
+    if not args.max_conversations:
+        missing.append("Max conversations (--max-conversations or D365_MAX_CONVERSATIONS env var, range: 1-1000)")
 
     if missing:
         raise ValueError(
             "Missing required configuration:\n  - " + "\n  - ".join(missing)
+        )
+    
+    # Validate max_conversations range
+    if args.max_conversations < 1 or args.max_conversations > 1000:
+        raise ValueError(
+            f"max-conversations must be between 1 and 1000, got {args.max_conversations}"
         )
 
 
@@ -131,6 +154,7 @@ def main() -> int:
         print(f"Organization URL: {args.org_url}")
         print(f"Workstream ID: {args.workstream}")
         print(f"Days to fetch: {args.days}")
+        print(f"Max conversations: {args.max_conversations}")
         print(f"Output folder: {args.output}")
         print()
 
@@ -169,6 +193,7 @@ def main() -> int:
             workstream_id=args.workstream,
             output_folder=args.output,
             days_to_fetch=args.days,
+            max_conversations=args.max_conversations,
         )
 
         summary = downloader.download_all_transcripts()

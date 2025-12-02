@@ -1,3 +1,3 @@
 # Dynamics 365 Transcript Downloader Dependencies
-msal>=1.24.0
-requests>=2.28.0
+msal>=1.34.0
+requests>=2.32.5

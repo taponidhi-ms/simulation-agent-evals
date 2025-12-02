@@ -36,6 +36,9 @@ OUTPUT_FOLDER = _get_env("D365_OUTPUT_FOLDER", "transcripts_output")
 # Time Range Settings (in days)
 DAYS_TO_FETCH = int(_get_env("D365_DAYS_TO_FETCH", "7"))
 
+# Maximum number of conversations to download in a single run (required, must be 1-1000)
+MAX_CONVERSATIONS = _get_env("D365_MAX_CONVERSATIONS", "")
+
 # Batch size for pagination
 PAGE_SIZE = 50
 
