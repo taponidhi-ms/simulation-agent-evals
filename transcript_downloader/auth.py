@@ -9,6 +9,14 @@ import msal
 
 from . import config
 
+# Token validity buffer in seconds (5 minutes)
+# Tokens are considered invalid if they expire within this buffer
+TOKEN_EXPIRY_BUFFER_SECONDS = 300
+
+# Default token expiration time in seconds (1 hour)
+# Used when MSAL doesn't provide an explicit expiration time
+DEFAULT_TOKEN_EXPIRY_SECONDS = 3600
+
 
 def _is_token_valid(token_data: dict[str, Any]) -> bool:
     """
@@ -24,8 +32,8 @@ def _is_token_valid(token_data: dict[str, Any]) -> bool:
         return False
     
     expires_at = token_data.get("expires_at", 0)
-    # Add 5 minute buffer to avoid using tokens that are about to expire
-    return time.time() < (expires_at - 300)
+    # Add buffer to avoid using tokens that are about to expire
+    return time.time() < (expires_at - TOKEN_EXPIRY_BUFFER_SECONDS)
 
 
 def _validate_token_format(token: str) -> bool:
@@ -211,7 +219,7 @@ class DynamicsAuthenticator:
 
         # Calculate expiration time
         # MSAL provides 'expires_in' (seconds until expiration)
-        expires_in = result.get("expires_in", 3600)
+        expires_in = result.get("expires_in", DEFAULT_TOKEN_EXPIRY_SECONDS)
         expires_at = time.time() + expires_in
 
         token_data = {
