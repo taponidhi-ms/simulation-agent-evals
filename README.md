@@ -117,9 +117,19 @@ transcript_downloader/
 ├── config.py                # Configuration settings
 ├── auth.py                  # Authentication module (MSAL)
 ├── dataverse_client.py      # Dataverse Web API client
+├── models.py                # Data models (Conversation, Transcript, Annotation, DownloadSummary)
 ├── transcript_downloader.py # Main transcript download logic
 └── validators.py            # Input validation utilities
 ```
+
+## Data Models
+
+The package uses typed dataclasses for better type safety and IDE support:
+
+- **`Conversation`** - Represents a D365 live work item with id, title, created_on
+- **`Transcript`** - Represents a transcript record with id, name, created_on
+- **`Annotation`** - Represents an annotation with id, document_body, filename, mimetype
+- **`DownloadSummary`** - Summary of download operation with counts and file list
 
 ## How It Works
 

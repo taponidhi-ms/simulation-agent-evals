@@ -178,12 +178,12 @@ def main() -> int:
         print("=" * 60)
         print("Summary")
         print("=" * 60)
-        print(f"Total conversations found: {summary['total_conversations']}")
-        print(f"Transcripts found: {summary['transcripts_found']}")
-        print(f"Transcripts downloaded: {summary['transcripts_downloaded']}")
-        print(f"Errors: {summary['errors']}")
+        print(f"Total conversations found: {summary.total_conversations}")
+        print(f"Transcripts found: {summary.transcripts_found}")
+        print(f"Transcripts downloaded: {summary.transcripts_downloaded}")
+        print(f"Errors: {summary.errors}")
 
-        if summary["files"]:
+        if summary.files:
             print(f"\nFiles saved to: {args.output}/")
 
         return 0
