@@ -18,7 +18,25 @@ pip install -r requirements.txt
 
 ## Configuration
 
-All organization-specific settings must be provided via environment variables or command-line arguments. No values are hardcoded.
+All organization-specific settings can be provided via:
+1. **Environment file (`.env`)**: Copy `.env.example` to `.env` and fill in your values
+2. **Environment variables**: Set variables directly in your shell
+3. **Command-line arguments**: Pass values as CLI arguments
+
+Configuration is loaded with `.env` file values available as environment variables, and CLI arguments take precedence over environment variables.
+
+### Quick Start with .env File
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit .env with your values
+nano .env
+
+# Run the script
+python download_transcripts.py
+```
 
 ### Required Configuration
 
@@ -34,11 +52,13 @@ The following settings are **required** and must be provided:
 
 | Setting | Environment Variable | CLI Argument | Default |
 |---------|---------------------|--------------|---------|
+| Access Token | `D365_ACCESS_TOKEN` | - | (none) - bypasses interactive login |
 | Login Hint | `D365_LOGIN_HINT` | `--login-hint` | (none) |
 | Output Folder | `D365_OUTPUT_FOLDER` | `--output` | `transcripts_output` |
 | Days to Fetch | `D365_DAYS_TO_FETCH` | `--days` | `7` |
 | Client ID | `D365_CLIENT_ID` | - | Power Platform first-party app |
 | Max Content Size | `D365_MAX_CONTENT_SIZE` | - | 52428800 (50MB) |
+| Token Cache Path | `D365_TOKEN_CACHE_PATH` | - | `.token_cache.json` |
 
 ### Example Usage
 
@@ -90,16 +110,32 @@ python download_transcripts.py --output my_transcripts
 
 ## Authentication
 
-The script uses interactive browser authentication via MSAL (Microsoft Authentication Library). When you run the script:
+The script supports multiple authentication methods with the following priority order:
 
-1. A browser window will open
-2. Sign in with your Microsoft account (the configured login hint will be pre-filled if provided)
-3. Grant the necessary permissions
-4. The script will receive an access token and begin downloading transcripts
+1. **Environment Variable Token**: If `D365_ACCESS_TOKEN` is set and valid, it will be used directly
+2. **File-based Token Cache**: If a valid cached token exists in `.token_cache.json`, it will be used
+3. **Interactive Browser Authentication**: Opens a browser window for login via MSAL
 
 ### Token Caching
 
-MSAL caches tokens automatically. On subsequent runs, if a valid token exists in the cache, you may not need to authenticate again.
+Tokens are automatically cached to `.token_cache.json` after successful interactive authentication. This allows subsequent runs to skip the browser login. The cache file is automatically excluded from git via `.gitignore`.
+
+To clear the cached token, simply delete the `.token_cache.json` file or set a new `D365_ACCESS_TOKEN` environment variable.
+
+### Direct Token Authentication
+
+For automation scenarios or when you already have a valid access token, you can set the `D365_ACCESS_TOKEN` environment variable:
+
+```bash
+export D365_ACCESS_TOKEN="your-access-token-here"
+python download_transcripts.py
+```
+
+Or add it to your `.env` file:
+
+```
+D365_ACCESS_TOKEN=your-access-token-here
+```
 
 ## Output
 

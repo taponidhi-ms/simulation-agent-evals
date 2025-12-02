@@ -2,6 +2,12 @@
 
 import os
 
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if it exists
+# This allows users to configure the tool via .env file in addition to env vars
+load_dotenv()
+
 
 def _get_env(name: str, default: str) -> str:
     """Get an environment variable with a default value."""
@@ -44,3 +50,9 @@ PAGE_SIZE = 50
 
 # Maximum base64 content size (in bytes) - 50MB default
 MAX_CONTENT_SIZE = int(_get_env("D365_MAX_CONTENT_SIZE", str(50 * 1024 * 1024)))
+
+# Access token for direct authentication (bypasses interactive login if set and valid)
+ACCESS_TOKEN = _get_env("D365_ACCESS_TOKEN", "")
+
+# Token cache file path (for persisting authentication across runs)
+TOKEN_CACHE_PATH = _get_env("D365_TOKEN_CACHE_PATH", ".token_cache.json")
