@@ -1,0 +1,327 @@
+"""Transcript downloader module for Dynamics 365 Customer Service."""
+
+import base64
+import json
+import os
+import re
+from datetime import datetime, timedelta, timezone
+
+from . import config
+from .dataverse_client import DataverseClient
+from .models import Annotation, Conversation, DownloadSummary, Transcript
+from .validators import escape_xml_value, is_safe_path_component, validate_guid
+
+
+class TranscriptDownloader:
+    """Downloads and saves transcripts from Dynamics 365 conversations."""
+
+    def __init__(
+        self,
+        client: DataverseClient,
+        workstream_id: str = config.WORKSTREAM_ID,
+        output_folder: str = config.OUTPUT_FOLDER,
+        days_to_fetch: int = config.DAYS_TO_FETCH,
+        max_content_size: int = config.MAX_CONTENT_SIZE,
+    ):
+        """
+        Initialize the transcript downloader.
+
+        Args:
+            client: Dataverse client instance.
+            workstream_id: ID of the workstream to fetch conversations from.
+            output_folder: Folder to save transcript files.
+            days_to_fetch: Number of days to look back for conversations.
+            max_content_size: Maximum size in bytes for base64 content.
+        """
+        # Validate workstream_id is a valid GUID
+        self.workstream_id = validate_guid(workstream_id, "workstream_id")
+        self.client = client
+        self.output_folder = os.path.abspath(output_folder)
+        self.days_to_fetch = days_to_fetch
+        self.max_content_size = max_content_size
+
+        # Ensure output folder exists
+        os.makedirs(self.output_folder, exist_ok=True)
+
+    def get_conversations(self) -> list[Conversation]:
+        """
+        Fetch conversations (live work items) from the specified workstream.
+
+        Returns:
+            List of Conversation objects.
+        """
+        # Calculate the date threshold
+        date_threshold = datetime.now(timezone.utc) - timedelta(days=self.days_to_fetch)
+        date_str = date_threshold.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        # Escape values for safe XML usage (workstream_id already validated as GUID)
+        safe_workstream_id = escape_xml_value(self.workstream_id)
+        safe_date_str = escape_xml_value(date_str)
+
+        # Build FetchXML query with escaped values
+        fetch_xml = f"""
+        <fetch>
+            <entity name='msdyn_ocliveworkitem'>
+                <attribute name='msdyn_ocliveworkitemid' />
+                <attribute name='msdyn_title' />
+                <attribute name='createdon' />
+                <attribute name='msdyn_liveworkstreamid' />
+                <filter type='and'>
+                    <condition attribute='msdyn_liveworkstreamid' operator='eq' value='{safe_workstream_id}'/>
+                    <condition attribute='createdon' operator='ge' value='{safe_date_str}'/>
+                </filter>
+                <order attribute='createdon' descending='true' />
+            </entity>
+        </fetch>
+        """
+
+        print(f"Fetching conversations from workstream {self.workstream_id}...")
+        print(f"Looking for conversations created in the last {self.days_to_fetch} days...")
+
+        raw_conversations = self.client.execute_fetch_xml(
+            entity_name="msdyn_ocliveworkitem",
+            fetch_xml=fetch_xml,
+        )
+
+        conversations = [Conversation.from_dict(c) for c in raw_conversations]
+        print(f"Found {len(conversations)} conversations.")
+        return conversations
+
+    def get_transcript_for_conversation(self, conversation_id: str) -> Transcript | None:
+        """
+        Fetch the transcript record for a conversation.
+
+        Args:
+            conversation_id: The ID of the live work item (conversation).
+
+        Returns:
+            Transcript object or None if not found.
+        """
+        # Validate conversation_id is a valid GUID to prevent injection
+        validated_id = validate_guid(conversation_id, "conversation_id")
+
+        # Query transcripts linked to this conversation
+        # The field linking transcript to liveworkitem is _msdyn_liveworkitemid_value
+        # OData GUID values don't need quotes when used directly
+        filter_query = f"_msdyn_liveworkitemid_value eq '{validated_id}'"
+
+        raw_transcripts = self.client.query_entities(
+            entity_name="msdyn_transcript",
+            filter_query=filter_query,
+            select=["msdyn_transcriptid", "msdyn_name", "createdon"],
+        )
+
+        if raw_transcripts:
+            return Transcript.from_dict(raw_transcripts[0])
+        return None
+
+    def get_annotation_for_transcript(self, transcript_id: str) -> Annotation | None:
+        """
+        Fetch the annotation record for a transcript.
+
+        Args:
+            transcript_id: The ID of the transcript.
+
+        Returns:
+            Annotation object or None if not found.
+        """
+        try:
+            # Validate transcript_id is a valid GUID to prevent injection
+            validated_id = validate_guid(transcript_id, "transcript_id")
+
+            # The annotation's objectid should reference the transcript
+            filter_query = f"_objectid_value eq '{validated_id}'"
+
+            raw_annotations = self.client.query_entities(
+                entity_name="annotation",
+                filter_query=filter_query,
+                select=["annotationid", "documentbody", "filename", "mimetype"],
+            )
+
+            if raw_annotations:
+                return Annotation.from_dict(raw_annotations[0])
+            return None
+
+        except Exception as e:
+            print(f"Error fetching annotation for transcript {transcript_id}: {e}")
+            return None
+
+    def decode_annotation_content(self, annotation: Annotation) -> str | None:
+        """
+        Decode the base64 document body from an annotation.
+
+        Args:
+            annotation: The Annotation object containing the document body.
+
+        Returns:
+            Decoded transcript content as string, or None if not available.
+        """
+        if not annotation.document_body:
+            return None
+
+        # Check content size before decoding to prevent memory issues
+        if len(annotation.document_body) > self.max_content_size:
+            print(f"  Warning: Content size exceeds limit ({len(annotation.document_body)} bytes)")
+            return None
+
+        try:
+            # Decode base64 content
+            decoded_bytes = base64.b64decode(annotation.document_body)
+            decoded_str = decoded_bytes.decode("utf-8")
+
+            # Clean up escaped characters
+            decoded_str = self._unescape_json_string(decoded_str)
+
+            return decoded_str
+        except Exception as e:
+            print(f"Error decoding annotation content: {e}")
+            return None
+
+    def _unescape_json_string(self, content: str) -> str:
+        """
+        Unescape a JSON string that may have extra escape characters.
+
+        Args:
+            content: The string to unescape.
+
+        Returns:
+            Unescaped string.
+        """
+        # Handle common escape sequences
+        content = content.replace('\\"', '"')
+        content = content.replace("\\\\", "\\")
+        content = content.replace("\\n", "\n")
+        content = content.replace("\\r", "\r")
+        content = content.replace("\\t", "\t")
+
+        return content
+
+    def _sanitize_filename(self, name: str) -> str:
+        """
+        Sanitize a string to be used as a filename.
+
+        Args:
+            name: The original name.
+
+        Returns:
+            Sanitized filename.
+        """
+        # Remove or replace invalid characters
+        sanitized = re.sub(r'[<>:"/\\|?*]', "_", name)
+        # Remove any path traversal attempts
+        sanitized = sanitized.replace("..", "_")
+        # Limit length
+        return sanitized[:100]
+
+    def save_transcript(
+        self,
+        conversation: Conversation,
+        content: str,
+    ) -> str:
+        """
+        Save transcript content to a JSON file.
+
+        Args:
+            conversation: The Conversation object.
+            content: The transcript content.
+
+        Returns:
+            Path to the saved file.
+
+        Raises:
+            ValueError: If the resulting path is outside the output folder.
+        """
+        # Validate conversation_id format
+        validated_id = validate_guid(conversation.id, "conversation_id")
+
+        # Build filename
+        timestamp = ""
+        if conversation.created_on:
+            try:
+                # Parse ISO format datetime
+                dt = datetime.fromisoformat(conversation.created_on.replace("Z", "+00:00"))
+                timestamp = dt.strftime("%Y%m%d_%H%M%S")
+            except ValueError:
+                timestamp = "unknown"
+
+        title_part = ""
+        if conversation.title:
+            sanitized_title = self._sanitize_filename(conversation.title)
+            # Additional validation for path safety
+            if is_safe_path_component(sanitized_title):
+                title_part = f"_{sanitized_title}"
+
+        filename = f"transcript_{timestamp}_{validated_id[:8]}{title_part}.json"
+        filepath = os.path.abspath(os.path.join(self.output_folder, filename))
+
+        # Verify the file path is within the output folder (prevent path traversal)
+        if not filepath.startswith(self.output_folder):
+            raise ValueError(f"Path traversal detected: {filepath}")
+
+        # Try to parse as JSON to format nicely
+        try:
+            json_content = json.loads(content)
+            formatted_content = json.dumps(json_content, indent=2, ensure_ascii=False)
+        except json.JSONDecodeError:
+            formatted_content = content
+
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(formatted_content)
+
+        return filepath
+
+    def download_all_transcripts(self) -> DownloadSummary:
+        """
+        Download all transcripts for conversations in the workstream.
+
+        Returns:
+            DownloadSummary object with success/failure counts.
+        """
+        summary = DownloadSummary()
+
+        # Get all conversations
+        conversations = self.get_conversations()
+        summary.total_conversations = len(conversations)
+
+        for i, conversation in enumerate(conversations, 1):
+            print(f"\nProcessing conversation {i}/{len(conversations)}: {conversation.id}")
+
+            # Get transcript for this conversation
+            transcript = self.get_transcript_for_conversation(conversation.id)
+
+            if not transcript:
+                print(f"  No transcript found for conversation {conversation.id}")
+                continue
+
+            summary.transcripts_found += 1
+
+            # Get annotation for transcript
+            annotation = self.get_annotation_for_transcript(transcript.id)
+
+            if not annotation:
+                print(f"  No annotation found for transcript {transcript.id}")
+                summary.errors += 1
+                continue
+
+            # Decode annotation content
+            content = self.decode_annotation_content(annotation)
+
+            if not content:
+                print(f"  No content available for transcript {transcript.id}")
+                summary.errors += 1
+                continue
+
+            # Save transcript
+            try:
+                filepath = self.save_transcript(
+                    conversation=conversation,
+                    content=content,
+                )
+                summary.transcripts_downloaded += 1
+                summary.files.append(filepath)
+                print(f"  Saved: {filepath}")
+            except Exception as e:
+                print(f"  Error saving transcript: {e}")
+                summary.errors += 1
+
+        return summary
