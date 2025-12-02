@@ -113,36 +113,22 @@ class TokenCache:
 class DynamicsAuthenticator:
     """Handles authentication to Dynamics 365 using MSAL interactive browser flow."""
 
-    def __init__(
-        self,
-        tenant_id: str = config.TENANT_ID,
-        client_id: str = config.CLIENT_ID,
-        organization_url: str = config.ORGANIZATION_URL,
-        login_hint: str = config.LOGIN_HINT,
-        access_token: str = config.ACCESS_TOKEN,
-        token_cache_path: str = config.TOKEN_CACHE_PATH,
-    ):
+    def __init__(self):
         """
         Initialize the authenticator.
 
-        Args:
-            tenant_id: Azure AD tenant ID.
-            client_id: Azure AD application client ID.
-            organization_url: Dynamics 365 organization URL.
-            login_hint: Optional email hint for login.
-            access_token: Optional pre-configured access token (from env).
-            token_cache_path: Path to token cache file.
+        All settings are loaded from environment variables (SA_* prefix).
         """
-        self.tenant_id = tenant_id
-        self.client_id = client_id
-        self.organization_url = organization_url
-        self.login_hint = login_hint
-        self.env_access_token = access_token
-        self.authority = f"https://login.microsoftonline.com/{tenant_id}"
-        self.scopes = [f"{organization_url}/.default"]
+        self.tenant_id = config.TENANT_ID
+        self.client_id = config.CLIENT_ID
+        self.organization_url = config.ORGANIZATION_URL
+        self.login_hint = config.LOGIN_HINT
+        self.env_access_token = config.ACCESS_TOKEN
+        self.authority = f"https://login.microsoftonline.com/{self.tenant_id}"
+        self.scopes = [f"{self.organization_url}/.default"]
         
         # Initialize token cache
-        self._token_cache = TokenCache(token_cache_path)
+        self._token_cache = TokenCache(config.TOKEN_CACHE_PATH)
 
         # Create public client application
         self._app = msal.PublicClientApplication(
@@ -153,7 +139,7 @@ class DynamicsAuthenticator:
     def get_access_token(self) -> str:
         """
         Get an access token following the priority order:
-        1. If env file has valid token (D365_ACCESS_TOKEN), use that
+        1. If env file has valid token (SA_ACCESS_TOKEN), use that
         2. If token is cached & valid, use that
         3. Use interactive authentication and cache token
 

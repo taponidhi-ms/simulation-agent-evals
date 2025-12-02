@@ -10,14 +10,10 @@ Usage:
     python download_transcripts.py
 
 Configuration:
-    Edit transcript_downloader/config.py to modify:
-    - Organization URL, ID, and Tenant ID
-    - Workstream ID
-    - Output folder
-    - Number of days to fetch
+    Copy .env.example to .env and fill in your values.
+    All settings are configured via environment variables (SA_* prefix).
 """
 
-import argparse
 import sys
 
 from transcript_downloader import config
@@ -26,100 +22,23 @@ from transcript_downloader.dataverse_client import DataverseClient
 from transcript_downloader.transcript_downloader import TranscriptDownloader
 
 
-def parse_arguments() -> argparse.Namespace:
-    """Parse command line arguments."""
-    parser = argparse.ArgumentParser(
-        description="Download transcripts from Dynamics 365 Customer Service.",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-    python download_transcripts.py
-    python download_transcripts.py --days 14
-    python download_transcripts.py --output my_transcripts
-    python download_transcripts.py --workstream abc12345-...
-        """,
-    )
-
-    parser.add_argument(
-        "--days",
-        type=int,
-        default=config.DAYS_TO_FETCH,
-        help=f"Number of days to look back for conversations (default: {config.DAYS_TO_FETCH})",
-    )
-
-    parser.add_argument(
-        "--output",
-        type=str,
-        default=config.OUTPUT_FOLDER,
-        help=f"Output folder for transcript files (default: {config.OUTPUT_FOLDER})",
-    )
-
-    parser.add_argument(
-        "--workstream",
-        type=str,
-        default=config.WORKSTREAM_ID,
-        help="Workstream ID to fetch conversations from",
-    )
-
-    parser.add_argument(
-        "--org-url",
-        type=str,
-        default=config.ORGANIZATION_URL,
-        help="Dynamics 365 Organization URL",
-    )
-
-    parser.add_argument(
-        "--tenant",
-        type=str,
-        default=config.TENANT_ID,
-        help="Azure AD Tenant ID",
-    )
-
-    parser.add_argument(
-        "--login-hint",
-        type=str,
-        default=config.LOGIN_HINT,
-        help="Email hint for authentication login",
-    )
-
-    # Get default from config, handling empty string case
-    default_max_conversations = None
-    if config.MAX_CONVERSATIONS:
-        try:
-            default_max_conversations = int(config.MAX_CONVERSATIONS)
-        except (ValueError, TypeError):
-            default_max_conversations = None
-    
-    parser.add_argument(
-        "--max-conversations",
-        type=int,
-        default=default_max_conversations,
-        help="Maximum number of conversations to download (required, range: 1-1000)",
-    )
-
-    return parser.parse_args()
-
-
-def validate_required_config(args: argparse.Namespace) -> None:
+def validate_required_config() -> None:
     """
     Validate that all required configuration values are set.
-
-    Args:
-        args: Parsed command line arguments.
 
     Raises:
         ValueError: If required configuration is missing or invalid.
     """
     missing = []
 
-    if not args.org_url:
-        missing.append("Organization URL (--org-url or D365_ORGANIZATION_URL env var)")
-    if not args.tenant:
-        missing.append("Tenant ID (--tenant or D365_TENANT_ID env var)")
-    if not args.workstream:
-        missing.append("Workstream ID (--workstream or D365_WORKSTREAM_ID env var)")
-    if not args.max_conversations:
-        missing.append("Max conversations (--max-conversations or D365_MAX_CONVERSATIONS env var, range: 1-1000)")
+    if not config.ORGANIZATION_URL:
+        missing.append("Organization URL (SA_ORGANIZATION_URL env var)")
+    if not config.TENANT_ID:
+        missing.append("Tenant ID (SA_TENANT_ID env var)")
+    if not config.WORKSTREAM_ID:
+        missing.append("Workstream ID (SA_WORKSTREAM_ID env var)")
+    if not config.MAX_CONVERSATIONS:
+        missing.append("Max conversations (SA_MAX_CONVERSATIONS env var, range: 1-1000)")
 
     if missing:
         raise ValueError(
@@ -127,9 +46,17 @@ def validate_required_config(args: argparse.Namespace) -> None:
         )
     
     # Validate max_conversations range
-    if args.max_conversations < 1 or args.max_conversations > 1000:
+    try:
+        max_conv = int(config.MAX_CONVERSATIONS)
+        if max_conv < 1 or max_conv > 1000:
+            raise ValueError(
+                f"SA_MAX_CONVERSATIONS must be between 1 and 1000, got {max_conv}"
+            )
+    except (ValueError, TypeError) as e:
+        if "must be between" in str(e):
+            raise
         raise ValueError(
-            f"max-conversations must be between 1 and 1000, got {args.max_conversations}"
+            f"SA_MAX_CONVERSATIONS must be a valid integer, got '{config.MAX_CONVERSATIONS}'"
         )
 
 
@@ -140,8 +67,6 @@ def main() -> int:
     Returns:
         Exit code (0 for success, 1 for failure).
     """
-    args = parse_arguments()
-
     print("=" * 60)
     print("Dynamics 365 Transcript Downloader")
     print("=" * 60)
@@ -149,13 +74,13 @@ def main() -> int:
 
     try:
         # Validate required configuration
-        validate_required_config(args)
+        validate_required_config()
 
-        print(f"Organization URL: {args.org_url}")
-        print(f"Workstream ID: {args.workstream}")
-        print(f"Days to fetch: {args.days}")
-        print(f"Max conversations: {args.max_conversations}")
-        print(f"Output folder: {args.output}")
+        print(f"Organization URL: {config.ORGANIZATION_URL}")
+        print(f"Workstream ID: {config.WORKSTREAM_ID}")
+        print(f"Days to fetch: {config.DAYS_TO_FETCH}")
+        print(f"Max conversations: {config.MAX_CONVERSATIONS}")
+        print(f"Output folder: {config.OUTPUT_FOLDER}")
         print()
 
         # Step 1: Authenticate
@@ -163,11 +88,7 @@ def main() -> int:
         print("Step 1: Authentication")
         print("-" * 40)
 
-        authenticator = DynamicsAuthenticator(
-            tenant_id=args.tenant,
-            organization_url=args.org_url,
-            login_hint=args.login_hint,
-        )
+        authenticator = DynamicsAuthenticator()
         access_token = authenticator.get_access_token()
 
         # Step 2: Create Dataverse client
@@ -176,10 +97,7 @@ def main() -> int:
         print("Step 2: Connecting to Dataverse")
         print("-" * 40)
 
-        client = DataverseClient(
-            access_token=access_token,
-            organization_url=args.org_url,
-        )
+        client = DataverseClient(access_token=access_token)
         print("Connected successfully.")
 
         # Step 3: Download transcripts
@@ -190,10 +108,7 @@ def main() -> int:
 
         downloader = TranscriptDownloader(
             client=client,
-            workstream_id=args.workstream,
-            output_folder=args.output,
-            days_to_fetch=args.days,
-            max_conversations=args.max_conversations,
+            max_conversations=int(config.MAX_CONVERSATIONS),
         )
 
         summary = downloader.download_all_transcripts()
@@ -209,7 +124,7 @@ def main() -> int:
         print(f"Errors: {summary.errors}")
 
         if summary.files:
-            print(f"\nFiles saved to: {args.output}/")
+            print(f"\nFiles saved to: {config.OUTPUT_FOLDER}/")
 
         return 0
 
