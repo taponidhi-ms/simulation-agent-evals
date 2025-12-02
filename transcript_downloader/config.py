@@ -3,18 +3,6 @@
 import os
 
 
-def _get_required_env(name: str, description: str) -> str:
-    """Get a required environment variable or raise an error with helpful message."""
-    value = os.environ.get(name)
-    if not value:
-        raise EnvironmentError(
-            f"Missing required environment variable: {name}\n"
-            f"Description: {description}\n"
-            f"Please set this variable before running the script."
-        )
-    return value
-
-
 def _get_env(name: str, default: str) -> str:
     """Get an environment variable with a default value."""
     return os.environ.get(name, default)
@@ -26,7 +14,6 @@ def _get_env(name: str, default: str) -> str:
 #   D365_TENANT_ID - Your Azure AD tenant ID
 #   D365_WORKSTREAM_ID - The workstream ID to fetch conversations from
 ORGANIZATION_URL = _get_env("D365_ORGANIZATION_URL", "")
-ORGANIZATION_ID = _get_env("D365_ORGANIZATION_ID", "")
 TENANT_ID = _get_env("D365_TENANT_ID", "")
 
 # Workstream Settings (from environment variable)

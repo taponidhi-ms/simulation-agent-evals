@@ -57,20 +57,6 @@ def escape_xml_value(value: str) -> str:
     return xml_escape(str(value))
 
 
-def escape_odata_string(value: str) -> str:
-    """
-    Escape a value for safe use in OData filter strings.
-
-    Args:
-        value: String to escape.
-
-    Returns:
-        OData-escaped string.
-    """
-    # Escape single quotes by doubling them
-    return str(value).replace("'", "''")
-
-
 def is_safe_path_component(value: str) -> bool:
     """
     Check if a string is safe to use as a path component.

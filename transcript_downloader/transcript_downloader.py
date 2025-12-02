@@ -100,7 +100,8 @@ class TranscriptDownloader:
 
         # Query transcripts linked to this conversation
         # The field linking transcript to liveworkitem is _msdyn_liveworkitemid_value
-        filter_query = f"_msdyn_liveworkitemid_value eq {validated_id}"
+        # OData GUID values don't need quotes when used directly
+        filter_query = f"_msdyn_liveworkitemid_value eq '{validated_id}'"
 
         transcripts = self.client.query_entities(
             entity_name="msdyn_transcript",
@@ -129,7 +130,7 @@ class TranscriptDownloader:
             validated_id = validate_guid(transcript_id, "transcript_id")
 
             # The annotation's objectid should reference the transcript
-            filter_query = f"_objectid_value eq {validated_id}"
+            filter_query = f"_objectid_value eq '{validated_id}'"
 
             annotations = self.client.query_entities(
                 entity_name="annotation",
