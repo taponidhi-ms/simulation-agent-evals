@@ -1,6 +1,9 @@
 # Transcript output folder
 transcripts_output/
 
+# Token cache file (contains sensitive auth tokens)
+.token_cache.json
+
 ### Python template
 # Byte-compiled / optimized / DLL files
 __pycache__/

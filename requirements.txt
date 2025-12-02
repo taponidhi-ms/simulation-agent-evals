@@ -1,3 +1,4 @@
 # Dynamics 365 Transcript Downloader Dependencies
 msal>=1.34.0
 requests>=2.32.5
+python-dotenv>=1.0.0

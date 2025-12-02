@@ -18,88 +18,96 @@ pip install -r requirements.txt
 
 ## Configuration
 
-All organization-specific settings must be provided via environment variables or command-line arguments. No values are hardcoded.
+All settings are configured via environment variables with the `SA_` prefix.
+Configuration can be provided in two ways:
+
+1. **Environment file (`.env`)**: Copy `.env.example` to `.env` and fill in your values
+2. **Environment variables**: Set variables directly in your shell (overrides `.env` file)
+
+### Quick Start with .env File
+
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit .env with your values
+nano .env
+
+# Run the script
+python download_transcripts.py
+```
 
 ### Required Configuration
 
 The following settings are **required** and must be provided:
 
-| Setting | Environment Variable | CLI Argument | Description |
-|---------|---------------------|--------------|-------------|
-| Organization URL | `D365_ORGANIZATION_URL` | `--org-url` | Your Dynamics 365 organization URL (e.g., `https://yourorg.crm.dynamics.com`) |
-| Tenant ID | `D365_TENANT_ID` | `--tenant` | Your Azure AD tenant ID (GUID format) |
-| Workstream ID | `D365_WORKSTREAM_ID` | `--workstream` | The workstream ID to fetch conversations from (GUID format) |
+| Setting | Environment Variable | Description |
+|---------|---------------------|-------------|
+| Organization URL | `SA_ORGANIZATION_URL` | Your Dynamics 365 organization URL (e.g., `https://yourorg.crm.dynamics.com`) |
+| Tenant ID | `SA_TENANT_ID` | Your Azure AD tenant ID (GUID format) |
+| Workstream ID | `SA_WORKSTREAM_ID` | The workstream ID to fetch conversations from (GUID format) |
+| Max Conversations | `SA_MAX_CONVERSATIONS` | Maximum number of conversations to download (range: 1-1000) |
 
 ### Optional Configuration
 
-| Setting | Environment Variable | CLI Argument | Default |
-|---------|---------------------|--------------|---------|
-| Login Hint | `D365_LOGIN_HINT` | `--login-hint` | (none) |
-| Output Folder | `D365_OUTPUT_FOLDER` | `--output` | `transcripts_output` |
-| Days to Fetch | `D365_DAYS_TO_FETCH` | `--days` | `7` |
-| Client ID | `D365_CLIENT_ID` | - | Power Platform first-party app |
-| Max Content Size | `D365_MAX_CONTENT_SIZE` | - | 52428800 (50MB) |
+| Setting | Environment Variable | Default |
+|---------|---------------------|---------|
+| Access Token | `SA_ACCESS_TOKEN` | (none) - bypasses interactive login |
+| Login Hint | `SA_LOGIN_HINT` | (none) |
+| Output Folder | `SA_OUTPUT_FOLDER` | `transcripts_output` |
+| Days to Fetch | `SA_DAYS_TO_FETCH` | `7` |
+| Client ID | `SA_CLIENT_ID` | Power Platform first-party app |
+| Max Content Size | `SA_MAX_CONTENT_SIZE` | 52428800 (50MB) |
+| Token Cache Path | `SA_TOKEN_CACHE_PATH` | `.token_cache.json` |
 
 ### Example Usage
 
 Using environment variables:
 ```bash
-export D365_ORGANIZATION_URL="https://yourorg.crm.dynamics.com"
-export D365_TENANT_ID="your-tenant-id-guid"
-export D365_WORKSTREAM_ID="your-workstream-id-guid"
-export D365_LOGIN_HINT="user@yourdomain.com"
+export SA_ORGANIZATION_URL="https://yourorg.crm.dynamics.com"
+export SA_TENANT_ID="your-tenant-id-guid"
+export SA_WORKSTREAM_ID="your-workstream-id-guid"
+export SA_MAX_CONVERSATIONS=100
+export SA_LOGIN_HINT="user@yourdomain.com"
 python download_transcripts.py
-```
-
-Using command-line arguments:
-```bash
-python download_transcripts.py \
-    --org-url "https://yourorg.crm.dynamics.com" \
-    --tenant "your-tenant-id-guid" \
-    --workstream "your-workstream-id-guid" \
-    --login-hint "user@yourdomain.com"
 ```
 
 ## Usage
 
-### Command Line Options
+Run the script after configuring your environment:
 
 ```bash
-python download_transcripts.py --help
-```
-
-Available options:
-- `--org-url`: Dynamics 365 Organization URL (required)
-- `--tenant`: Azure AD Tenant ID (required)
-- `--workstream`: Workstream ID to fetch conversations from (required)
-- `--login-hint`: Email hint for authentication login
-- `--days`: Number of days to look back (default: 7)
-- `--output`: Output folder for transcript files (default: transcripts_output)
-
-### Examples
-
-Download transcripts from the last 14 days:
-```bash
-python download_transcripts.py --days 14
-```
-
-Save transcripts to a custom folder:
-```bash
-python download_transcripts.py --output my_transcripts
+python download_transcripts.py
 ```
 
 ## Authentication
 
-The script uses interactive browser authentication via MSAL (Microsoft Authentication Library). When you run the script:
+The script supports multiple authentication methods with the following priority order:
 
-1. A browser window will open
-2. Sign in with your Microsoft account (the configured login hint will be pre-filled if provided)
-3. Grant the necessary permissions
-4. The script will receive an access token and begin downloading transcripts
+1. **Environment Variable Token**: If `SA_ACCESS_TOKEN` is set and valid, it will be used directly
+2. **File-based Token Cache**: If a valid cached token exists in `.token_cache.json`, it will be used
+3. **Interactive Browser Authentication**: Opens a browser window for login via MSAL
 
 ### Token Caching
 
-MSAL caches tokens automatically. On subsequent runs, if a valid token exists in the cache, you may not need to authenticate again.
+Tokens are automatically cached to `.token_cache.json` after successful interactive authentication. This allows subsequent runs to skip the browser login. The cache file is automatically excluded from git via `.gitignore`.
+
+To clear the cached token, simply delete the `.token_cache.json` file or set a new `SA_ACCESS_TOKEN` environment variable.
+
+### Direct Token Authentication
+
+For automation scenarios or when you already have a valid access token, you can set the `SA_ACCESS_TOKEN` environment variable:
+
+```bash
+export SA_ACCESS_TOKEN="your-access-token-here"
+python download_transcripts.py
+```
+
+Or add it to your `.env` file:
+
+```
+SA_ACCESS_TOKEN=your-access-token-here
+```
 
 ## Output
 
