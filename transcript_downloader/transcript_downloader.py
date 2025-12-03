@@ -320,7 +320,8 @@ class TranscriptDownloader:
         self, conversation_ids: list[str]
     ) -> dict[str, Transcript]:
         """
-        Fetch all transcripts for multiple conversations in a single query using FetchXML.
+        Fetch all transcripts for multiple conversations using FetchXML.
+        Processes conversations in batches of 10 using the 'in' operator for efficiency.
 
         Args:
             conversation_ids: List of conversation IDs to fetch transcripts for.
@@ -334,48 +335,56 @@ class TranscriptDownloader:
         # Validate all conversation IDs
         validated_ids = [validate_guid(cid, "conversation_id") for cid in conversation_ids]
         
-        # Build FetchXML with multiple conditions (using OR)
-        conditions = [
-            f"                    <condition attribute='msdyn_liveworkitemid' operator='eq' value='{escape_xml_value(conv_id)}'/>"
-            for conv_id in validated_ids
-        ]
-        conditions_str = "\n".join(conditions)
+        # Process in batches of 10
+        batch_size = 10
+        all_transcripts = {}
+        
+        for i in range(0, len(validated_ids), batch_size):
+            batch = validated_ids[i:i + batch_size]
+            
+            # Build FetchXML using 'in' operator with separate value tags
+            value_tags = "\n".join([
+                f"                            <value>{escape_xml_value(conv_id)}</value>"
+                for conv_id in batch
+            ])
 
-        fetch_xml = f"""
-        <fetch>
-            <entity name='msdyn_transcript'>
-                <attribute name='msdyn_transcriptid' />
-                <attribute name='msdyn_name' />
-                <attribute name='createdon' />
-                <attribute name='msdyn_liveworkitemid' />
-                <filter type='or'>
-{conditions_str}
-                </filter>
-            </entity>
-        </fetch>
-        """
+            fetch_xml = f"""
+            <fetch>
+                <entity name='msdyn_transcript'>
+                    <attribute name='msdyn_transcriptid' />
+                    <attribute name='msdyn_name' />
+                    <attribute name='createdon' />
+                    <attribute name='msdyn_liveworkitemid' />
+                    <filter>
+                        <condition attribute='msdyn_liveworkitemid' operator='in'>
+{value_tags}
+                        </condition>
+                    </filter>
+                </entity>
+            </fetch>
+            """
 
-        raw_transcripts = self.client.execute_fetch_xml(
-            entity_name="msdyn_transcript",
-            fetch_xml=fetch_xml,
-        )
+            raw_transcripts = self.client.execute_fetch_xml(
+                entity_name="msdyn_transcript",
+                fetch_xml=fetch_xml,
+            )
 
-        # Map transcripts by conversation ID
-        transcripts_by_conversation = {}
-        for raw_transcript in raw_transcripts:
-            transcript = Transcript.from_dict(raw_transcript)
-            # Extract the conversation ID from the lookup field
-            conversation_id = raw_transcript.get("_msdyn_liveworkitemid_value")
-            if conversation_id:
-                transcripts_by_conversation[conversation_id] = transcript
+            # Map transcripts by conversation ID
+            for raw_transcript in raw_transcripts:
+                transcript = Transcript.from_dict(raw_transcript)
+                # Extract the conversation ID from the lookup field
+                conversation_id = raw_transcript.get("_msdyn_liveworkitemid_value")
+                if conversation_id:
+                    all_transcripts[conversation_id] = transcript
 
-        return transcripts_by_conversation
+        return all_transcripts
 
     def get_all_annotations_for_transcripts(
         self, transcript_ids: list[str]
     ) -> dict[str, Annotation]:
         """
-        Fetch all annotations for multiple transcripts in a single query using FetchXML.
+        Fetch all annotations for multiple transcripts using FetchXML.
+        Processes transcripts in batches of 10 using the 'in' operator for efficiency.
 
         Args:
             transcript_ids: List of transcript IDs to fetch annotations for.
@@ -389,49 +398,56 @@ class TranscriptDownloader:
         # Validate all transcript IDs
         validated_ids = [validate_guid(tid, "transcript_id") for tid in transcript_ids]
         
-        # Build FetchXML with multiple conditions (using OR)
-        conditions = [
-            f"                    <condition attribute='objectid' operator='eq' value='{escape_xml_value(transcript_id)}'/>"
-            for transcript_id in validated_ids
-        ]
-        conditions_str = "\n".join(conditions)
+        # Process in batches of 10
+        batch_size = 10
+        all_annotations = {}
+        
+        for i in range(0, len(validated_ids), batch_size):
+            batch = validated_ids[i:i + batch_size]
+            
+            # Build FetchXML using 'in' operator with separate value tags
+            value_tags = "\n".join([
+                f"                            <value>{escape_xml_value(transcript_id)}</value>"
+                for transcript_id in batch
+            ])
 
-        fetch_xml = f"""
-        <fetch>
-            <entity name='annotation'>
-                <attribute name='annotationid' />
-                <attribute name='documentbody' />
-                <attribute name='filename' />
-                <attribute name='mimetype' />
-                <attribute name='objectid' />
-                <filter type='or'>
-{conditions_str}
-                </filter>
-            </entity>
-        </fetch>
-        """
+            fetch_xml = f"""
+            <fetch>
+                <entity name='annotation'>
+                    <attribute name='annotationid' />
+                    <attribute name='documentbody' />
+                    <attribute name='filename' />
+                    <attribute name='mimetype' />
+                    <attribute name='objectid' />
+                    <filter>
+                        <condition attribute='objectid' operator='in'>
+{value_tags}
+                        </condition>
+                    </filter>
+                </entity>
+            </fetch>
+            """
 
-        raw_annotations = self.client.execute_fetch_xml(
-            entity_name="annotation",
-            fetch_xml=fetch_xml,
-        )
+            raw_annotations = self.client.execute_fetch_xml(
+                entity_name="annotation",
+                fetch_xml=fetch_xml,
+            )
 
-        # Map annotations by transcript ID (objectid)
-        annotations_by_transcript = {}
-        for raw_annotation in raw_annotations:
-            annotation = Annotation.from_dict(raw_annotation)
-            # Extract the transcript ID from the objectid field
-            transcript_id = raw_annotation.get("_objectid_value")
-            if transcript_id:
-                annotations_by_transcript[transcript_id] = annotation
+            # Map annotations by transcript ID (objectid)
+            for raw_annotation in raw_annotations:
+                annotation = Annotation.from_dict(raw_annotation)
+                # Extract the transcript ID from the objectid field
+                transcript_id = raw_annotation.get("_objectid_value")
+                if transcript_id:
+                    all_annotations[transcript_id] = annotation
 
-        return annotations_by_transcript
+        return all_annotations
 
     def download_all_transcripts(self) -> DownloadSummary:
         """
         Download all transcripts for conversations in the workstream.
         Uses optimized batch fetching: 1st query fetches closed conversations,
-        2nd query fetches all transcripts, 3rd query fetches all annotations.
+        then queries fetch transcripts and annotations in batches of 10 using FetchXML 'in' operator.
 
         Returns:
             DownloadSummary object with success/failure counts.
