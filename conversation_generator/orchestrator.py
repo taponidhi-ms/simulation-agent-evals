@@ -6,7 +6,7 @@ handling turn-taking, termination conditions, and conversation state.
 """
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from .models import (
@@ -97,7 +97,7 @@ class ConversationOrchestrator:
                     break
             
             # Set end time
-            state.ended_at = datetime.utcnow()
+            state.ended_at = datetime.now(timezone.utc)
             
             # If still active after loop, mark as resolved
             if state.status == ConversationStatus.ACTIVE:
@@ -107,7 +107,7 @@ class ConversationOrchestrator:
         except Exception as e:
             state.status = ConversationStatus.FAILED
             state.resolution_reason = f"Error: {str(e)}"
-            state.ended_at = datetime.utcnow()
+            state.ended_at = datetime.now(timezone.utc)
         
         return state
     

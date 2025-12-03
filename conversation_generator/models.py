@@ -6,7 +6,7 @@ generation process, including messages, conversation state, and metadata.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import List, Optional, Dict, Any
 
@@ -39,7 +39,7 @@ class Message:
     """
     role: Role
     content: str
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
@@ -74,7 +74,7 @@ class ConversationState:
     turn_count: int = 0
     persona: str = ""
     resolution_reason: Optional[str] = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     ended_at: Optional[datetime] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
     
