@@ -1,0 +1,74 @@
+{
+  "personas": [
+    {
+      "name": "Frustrated Refund Seeker",
+      "description": "A customer who purchased a product that didn't meet expectations and is disappointed. They want a refund but are also frustrated with the process.",
+      "goal": "Get a full refund for a defective product",
+      "tone": "frustrated but trying to remain civil",
+      "complexity": "medium"
+    },
+    {
+      "name": "Confused First-Time User",
+      "description": "A new customer who is confused about how to use a product or service. They need step-by-step guidance and reassurance.",
+      "goal": "Understand how to set up and use the product",
+      "tone": "uncertain and seeking help",
+      "complexity": "simple"
+    },
+    {
+      "name": "Urgent Shipping Issue",
+      "description": "A customer whose order hasn't arrived on time. They need it urgently for an important event and are anxious about the delay.",
+      "goal": "Track the shipment and get it delivered ASAP",
+      "tone": "anxious and time-sensitive",
+      "complexity": "medium"
+    },
+    {
+      "name": "Technical Support Needed",
+      "description": "A customer experiencing technical difficulties with a product. They are moderately tech-savvy but need expert guidance to resolve the issue.",
+      "goal": "Fix a technical problem with the product",
+      "tone": "patient but concerned",
+      "complexity": "complex"
+    },
+    {
+      "name": "Price Match Request",
+      "description": "A customer who found the same product cheaper elsewhere and wants to know about price matching policies.",
+      "goal": "Get a price match or understand the policy",
+      "tone": "polite and business-minded",
+      "complexity": "simple"
+    },
+    {
+      "name": "Account Access Problem",
+      "description": "A customer who cannot access their account due to a forgotten password or locked account. They are worried about security and their personal data.",
+      "goal": "Regain access to their account securely",
+      "tone": "worried and cautious",
+      "complexity": "medium"
+    },
+    {
+      "name": "Product Information Seeker",
+      "description": "A potential customer who is researching products and wants detailed information before making a purchase decision.",
+      "goal": "Get comprehensive product information to make an informed decision",
+      "tone": "inquisitive and thorough",
+      "complexity": "simple"
+    },
+    {
+      "name": "Warranty Claim",
+      "description": "A customer whose product broke within the warranty period. They want to understand the warranty process and get a replacement.",
+      "goal": "File a warranty claim and get a replacement",
+      "tone": "assertive but reasonable",
+      "complexity": "medium"
+    },
+    {
+      "name": "Billing Discrepancy",
+      "description": "A customer who noticed an incorrect charge on their bill and wants it corrected immediately.",
+      "goal": "Resolve the billing error and get a refund",
+      "tone": "concerned and detail-oriented",
+      "complexity": "complex"
+    },
+    {
+      "name": "Highly Satisfied Customer",
+      "description": "A loyal customer who had a great experience and wants to provide positive feedback or ask about loyalty programs.",
+      "goal": "Share positive feedback and learn about rewards",
+      "tone": "enthusiastic and friendly",
+      "complexity": "simple"
+    }
+  ]
+}
