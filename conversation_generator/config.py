@@ -12,18 +12,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # =============================================================================
-# LLM Configuration
+# Azure OpenAI Configuration
 # =============================================================================
 
-# OpenAI API Configuration
-OPENAI_API_KEY = os.getenv("CG_OPENAI_API_KEY", "")
-OPENAI_API_BASE = os.getenv("CG_OPENAI_API_BASE", "https://api.openai.com/v1")
-OPENAI_API_TYPE = os.getenv("CG_OPENAI_API_TYPE", "openai")  # "openai" or "azure"
-OPENAI_API_VERSION = os.getenv("CG_OPENAI_API_VERSION", "2024-02-01")
+# Azure OpenAI API Configuration
+AZURE_OPENAI_API_KEY = os.getenv("CG_AZURE_OPENAI_API_KEY", "")
+AZURE_OPENAI_ENDPOINT = os.getenv("CG_AZURE_OPENAI_ENDPOINT", "")
+AZURE_OPENAI_API_VERSION = os.getenv("CG_AZURE_OPENAI_API_VERSION", "2024-02-01")
 
-# Model names
-CUSTOMER_MODEL = os.getenv("CG_CUSTOMER_MODEL", "gpt-4")
-CSR_MODEL = os.getenv("CG_CSR_MODEL", "gpt-4")
+# Deployment names (model deployments in Azure)
+CUSTOMER_DEPLOYMENT = os.getenv("CG_CUSTOMER_DEPLOYMENT", "gpt-4o-mini")
+CSR_DEPLOYMENT = os.getenv("CG_CSR_DEPLOYMENT", "gpt-4o-mini")
 
 # =============================================================================
 # Generation Configuration

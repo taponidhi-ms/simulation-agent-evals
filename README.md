@@ -30,7 +30,9 @@ Generates synthetic conversations between customer and CSR agents using LLMs for
 ```bash
 # Configure
 cp .env.example .env
-# Add your OpenAI API key to .env: CG_OPENAI_API_KEY=sk-...
+# Add your Azure OpenAI credentials to .env:
+# CG_AZURE_OPENAI_API_KEY=your-key
+# CG_AZURE_OPENAI_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
 
 # Run
 python generate_conversations.py
@@ -45,7 +47,7 @@ python example_usage.py
 
 - **Python 3.9 or higher**
 - **For Transcript Downloader**: Access to a Dynamics 365 Customer Service organization
-- **For Conversation Generator**: OpenAI API key or Azure OpenAI access
+- **For Conversation Generator**: Azure OpenAI access
 
 ## Installation
 
@@ -132,7 +134,8 @@ python download_transcripts.py
 ### Conversation Generator
 ```bash
 # Set environment variables
-export CG_OPENAI_API_KEY="sk-your-api-key"
+export CG_AZURE_OPENAI_API_KEY="your-api-key"
+export CG_AZURE_OPENAI_ENDPOINT="https://your-resource.cognitiveservices.azure.com/"
 export CG_NUM_CONVERSATIONS=10
 
 # Generate conversations

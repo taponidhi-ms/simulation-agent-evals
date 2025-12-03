@@ -18,7 +18,7 @@ python generate_conversations.py
 ## Prerequisites
 
 - Python 3.9 or higher
-- OpenAI API key or Azure OpenAI access
+- Azure OpenAI access
 
 ## Installation
 
@@ -43,8 +43,9 @@ Configuration can be provided in two ways:
 # From repository root
 cp .env.example .env
 
-# Edit .env and add your OpenAI API key
-# CG_OPENAI_API_KEY=your-key-here
+# Edit .env and add your Azure OpenAI credentials
+# CG_AZURE_OPENAI_API_KEY=your-key-here
+# CG_AZURE_OPENAI_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
 
 # Run the generator
 python generate_conversations.py
@@ -54,16 +55,16 @@ python generate_conversations.py
 
 | Setting | Environment Variable | Description |
 |---------|---------------------|-------------|
-| OpenAI API Key | `CG_OPENAI_API_KEY` | Your OpenAI API key (from https://platform.openai.com) |
+| Azure OpenAI API Key | `CG_AZURE_OPENAI_API_KEY` | Your Azure OpenAI API key (subscription key from https://ai.azure.com/) |
+| Azure OpenAI Endpoint | `CG_AZURE_OPENAI_ENDPOINT` | Your Azure OpenAI endpoint URL (e.g., https://your-resource.cognitiveservices.azure.com/) |
 
 ## Optional Configuration
 
 | Setting | Environment Variable | Default | Description |
 |---------|---------------------|---------|-------------|
-| API Base | `CG_OPENAI_API_BASE` | `https://api.openai.com/v1` | API endpoint (use Azure endpoint for Azure OpenAI) |
-| API Type | `CG_OPENAI_API_TYPE` | `openai` | API type: `openai` or `azure` |
-| Customer Model | `CG_CUSTOMER_MODEL` | `gpt-4` | Model for customer agent |
-| CSR Model | `CG_CSR_MODEL` | `gpt-4` | Model for CSR agent |
+| API Version | `CG_AZURE_OPENAI_API_VERSION` | `2024-02-01` | Azure OpenAI API version |
+| Customer Deployment | `CG_CUSTOMER_DEPLOYMENT` | `gpt-4o-mini` | Deployment name for customer agent |
+| CSR Deployment | `CG_CSR_DEPLOYMENT` | `gpt-4o-mini` | Deployment name for CSR agent |
 | Max Turns | `CG_MAX_TURNS` | `20` | Maximum conversation turns |
 | Temperature | `CG_TEMPERATURE` | `0.7` | LLM temperature (0.0-2.0) |
 | Max Tokens | `CG_MAX_TOKENS` | `500` | Maximum tokens per response |
@@ -216,16 +217,17 @@ Add items to `knowledge_base/faq.json`:
 
 ### Using Azure OpenAI
 
-Set these environment variables:
+Set these environment variables in your `.env` file:
 
 ```bash
-export CG_OPENAI_API_TYPE=azure
-export CG_OPENAI_API_BASE=https://YOUR-RESOURCE.openai.azure.com
-export CG_OPENAI_API_VERSION=2024-02-01
-export CG_OPENAI_API_KEY=your-azure-api-key
-export CG_CUSTOMER_MODEL=your-deployment-name
-export CG_CSR_MODEL=your-deployment-name
+CG_AZURE_OPENAI_API_KEY=your-azure-api-key
+CG_AZURE_OPENAI_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
+CG_AZURE_OPENAI_API_VERSION=2024-02-01
+CG_CUSTOMER_DEPLOYMENT=gpt-4o-mini
+CG_CSR_DEPLOYMENT=gpt-4o-mini
 ```
+
+**Note:** The deployment names (`CG_CUSTOMER_DEPLOYMENT` and `CG_CSR_DEPLOYMENT`) must match the deployment names you created in your Azure OpenAI resource.
 
 ## Example
 
@@ -237,11 +239,12 @@ python example_usage.py
 
 ## Troubleshooting
 
-### OpenAI API Errors
+### Azure OpenAI API Errors
 
 - Verify your API key is correct and active
-- Check your API quota and rate limits
-- Ensure the model names are valid for your API type
+- Check your Azure OpenAI resource is properly deployed
+- Ensure the deployment names match your Azure OpenAI deployments
+- Verify the endpoint URL is correct (should end with `.cognitiveservices.azure.com/`)
 
 ### No Conversations Generated
 
