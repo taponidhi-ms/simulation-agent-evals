@@ -335,10 +335,11 @@ class TranscriptDownloader:
         validated_ids = [validate_guid(cid, "conversation_id") for cid in conversation_ids]
         
         # Build FetchXML with multiple conditions (using OR)
-        conditions = ""
-        for conv_id in validated_ids:
-            safe_id = escape_xml_value(conv_id)
-            conditions += f"                    <condition attribute='msdyn_liveworkitemid' operator='eq' value='{safe_id}'/>\n"
+        conditions = [
+            f"                    <condition attribute='msdyn_liveworkitemid' operator='eq' value='{escape_xml_value(conv_id)}'/>"
+            for conv_id in validated_ids
+        ]
+        conditions_str = "\n".join(conditions)
 
         fetch_xml = f"""
         <fetch>
@@ -348,7 +349,8 @@ class TranscriptDownloader:
                 <attribute name='createdon' />
                 <attribute name='msdyn_liveworkitemid' />
                 <filter type='or'>
-{conditions}                </filter>
+{conditions_str}
+                </filter>
             </entity>
         </fetch>
         """
@@ -388,10 +390,11 @@ class TranscriptDownloader:
         validated_ids = [validate_guid(tid, "transcript_id") for tid in transcript_ids]
         
         # Build FetchXML with multiple conditions (using OR)
-        conditions = ""
-        for transcript_id in validated_ids:
-            safe_id = escape_xml_value(transcript_id)
-            conditions += f"                    <condition attribute='objectid' operator='eq' value='{safe_id}'/>\n"
+        conditions = [
+            f"                    <condition attribute='objectid' operator='eq' value='{escape_xml_value(transcript_id)}'/>"
+            for transcript_id in validated_ids
+        ]
+        conditions_str = "\n".join(conditions)
 
         fetch_xml = f"""
         <fetch>
@@ -402,7 +405,8 @@ class TranscriptDownloader:
                 <attribute name='mimetype' />
                 <attribute name='objectid' />
                 <filter type='or'>
-{conditions}                </filter>
+{conditions_str}
+                </filter>
             </entity>
         </fetch>
         """
