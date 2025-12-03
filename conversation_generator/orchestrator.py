@@ -122,10 +122,12 @@ class ConversationOrchestrator:
             Generated customer message
         """
         response = self.customer_agent.generate_response(state.messages)
+        # Turn number is current count + 1 since this will be the next turn
+        turn_number = state.turn_count + 1
         return Message(
             role=Role.CUSTOMER,
             content=response,
-            metadata={"turn": state.turn_count + 1}
+            metadata={"turn": turn_number}
         )
     
     def _generate_csr_message(self, state: ConversationState) -> Message:
@@ -139,10 +141,12 @@ class ConversationOrchestrator:
             Generated CSR message
         """
         response = self.csr_agent.generate_response(state.messages)
+        # Turn number is current count + 1 since this will be the next turn
+        turn_number = state.turn_count + 1
         return Message(
             role=Role.CSR,
             content=response,
-            metadata={"turn": state.turn_count + 1}
+            metadata={"turn": turn_number}
         )
     
     def _should_terminate(self, state: ConversationState) -> bool:

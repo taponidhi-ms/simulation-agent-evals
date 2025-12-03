@@ -72,7 +72,10 @@ class LLMClient:
                 temperature=temperature,
                 max_tokens=max_tokens
             )
-            return response.choices[0].message.content
+            content = response.choices[0].message.content
+            if content is None:
+                raise RuntimeError("LLM returned empty response")
+            return content
         except Exception as e:
             raise RuntimeError(f"LLM generation failed: {e}")
 

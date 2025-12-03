@@ -36,8 +36,15 @@ class KnowledgeBase:
         
         Args:
             path: Path to knowledge base JSON file
+            
+        Raises:
+            FileNotFoundError: If the path doesn't exist
+            ValueError: If the path is neither a file nor directory
         """
         path_obj = Path(path)
+        
+        if not path_obj.exists():
+            raise FileNotFoundError(f"Knowledge base path does not exist: {path}")
         
         if path_obj.is_file() and path_obj.suffix == '.json':
             with open(path, 'r', encoding='utf-8') as f:
@@ -55,6 +62,8 @@ class KnowledgeBase:
                         self.knowledge_items.extend(data)
                     elif isinstance(data, dict) and 'items' in data:
                         self.knowledge_items.extend(data['items'])
+        else:
+            raise ValueError(f"Path must be a JSON file or directory: {path}")
     
     def add_item(self, category: str, question: str, answer: str, 
                  tags: Optional[List[str]] = None) -> None:
