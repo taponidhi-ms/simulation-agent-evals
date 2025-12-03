@@ -3,7 +3,7 @@
 Example: Conversation Generator Usage
 
 This example demonstrates how to use the conversation generator components
-without requiring an actual OpenAI API key. It shows the structure and
+without requiring an actual Azure OpenAI API key. It shows the structure and
 data flow of the system.
 """
 
@@ -181,7 +181,7 @@ def main():
     print("=" * 70)
     print()
     print("To generate actual conversations with LLMs:")
-    print("1. Set CG_OPENAI_API_KEY in your .env file")
+    print("1. Set CG_AZURE_OPENAI_API_KEY and CG_AZURE_OPENAI_ENDPOINT in your .env file")
     print("2. Run: python generate_conversations.py")
     print()
 

@@ -9,9 +9,8 @@ from typing import List, Dict, Any, Optional
 import json
 
 try:
-    from openai import OpenAI, AzureOpenAI
+    from openai import AzureOpenAI
 except ImportError:
-    OpenAI = None
     AzureOpenAI = None
 
 from .models import Message, Role, PersonaTemplate
@@ -20,36 +19,27 @@ from . import config
 
 
 class LLMClient:
-    """Wrapper for OpenAI/Azure OpenAI client."""
+    """Wrapper for Azure OpenAI client."""
     
-    def __init__(self, api_key: str, api_base: str, api_type: str = "openai", 
-                 api_version: str = "2024-02-01"):
+    def __init__(self, api_key: str, azure_endpoint: str, api_version: str = "2024-02-01"):
         """
-        Initialize LLM client.
+        Initialize Azure OpenAI LLM client.
         
         Args:
-            api_key: API key for OpenAI or Azure OpenAI
-            api_base: Base URL for API
-            api_type: Type of API ("openai" or "azure")
-            api_version: API version (for Azure)
+            api_key: API key for Azure OpenAI
+            azure_endpoint: Azure OpenAI endpoint URL (e.g., https://YOUR-RESOURCE.openai.azure.com/)
+            api_version: API version (default: 2024-02-01)
         """
-        if OpenAI is None:
+        if AzureOpenAI is None:
             raise ImportError(
                 "openai package is required. Install with: pip install openai"
             )
         
-        self.api_type = api_type
-        if api_type == "azure":
-            self.client = AzureOpenAI(
-                api_key=api_key,
-                api_version=api_version,
-                azure_endpoint=api_base
-            )
-        else:
-            self.client = OpenAI(
-                api_key=api_key,
-                base_url=api_base if api_base != "https://api.openai.com/v1" else None
-            )
+        self.client = AzureOpenAI(
+            api_key=api_key,
+            api_version=api_version,
+            azure_endpoint=azure_endpoint
+        )
     
     def generate(self, messages: List[Dict[str, str]], model: str,
                  temperature: float = 0.7, max_tokens: int = 500) -> str:

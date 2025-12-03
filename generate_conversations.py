@@ -61,9 +61,13 @@ def validate_config() -> None:
     Raises:
         ValueError: If required configuration is missing
     """
-    if not config.OPENAI_API_KEY:
+    if not config.AZURE_OPENAI_API_KEY:
         raise ValueError(
-            "OpenAI API key is required. Set CG_OPENAI_API_KEY environment variable."
+            "Azure OpenAI API key is required. Set CG_AZURE_OPENAI_API_KEY environment variable."
+        )
+    if not config.AZURE_OPENAI_ENDPOINT:
+        raise ValueError(
+            "Azure OpenAI endpoint is required. Set CG_AZURE_OPENAI_ENDPOINT environment variable."
         )
 
 
@@ -83,9 +87,9 @@ def main() -> int:
         # Validate configuration
         validate_config()
         
-        print(f"API Type: {config.OPENAI_API_TYPE}")
-        print(f"Customer Model: {config.CUSTOMER_MODEL}")
-        print(f"CSR Model: {config.CSR_MODEL}")
+        print(f"Azure OpenAI Endpoint: {config.AZURE_OPENAI_ENDPOINT}")
+        print(f"Customer Deployment: {config.CUSTOMER_DEPLOYMENT}")
+        print(f"CSR Deployment: {config.CSR_DEPLOYMENT}")
         print(f"Max Turns: {config.MAX_TURNS}")
         print(f"Temperature: {config.TEMPERATURE}")
         print(f"Conversations to Generate: {config.NUM_CONVERSATIONS}")
@@ -93,16 +97,15 @@ def main() -> int:
         
         # Initialize LLM client
         print("-" * 50)
-        print("Step 1: Initializing LLM Client")
+        print("Step 1: Initializing Azure OpenAI Client")
         print("-" * 50)
         
         llm_client = LLMClient(
-            api_key=config.OPENAI_API_KEY,
-            api_base=config.OPENAI_API_BASE,
-            api_type=config.OPENAI_API_TYPE,
-            api_version=config.OPENAI_API_VERSION
+            api_key=config.AZURE_OPENAI_API_KEY,
+            azure_endpoint=config.AZURE_OPENAI_ENDPOINT,
+            api_version=config.AZURE_OPENAI_API_VERSION
         )
-        print("LLM client initialized successfully.")
+        print("Azure OpenAI client initialized successfully.")
         print()
         
         # Load knowledge base
@@ -160,7 +163,7 @@ def main() -> int:
                     customer_agent = CustomerAgent(
                         llm_client=llm_client,
                         persona=persona,
-                        model=config.CUSTOMER_MODEL,
+                        model=config.CUSTOMER_DEPLOYMENT,
                         temperature=config.TEMPERATURE,
                         max_tokens=config.MAX_TOKENS
                     )
@@ -168,7 +171,7 @@ def main() -> int:
                     csr_agent = CSRAgent(
                         llm_client=llm_client,
                         knowledge_base=knowledge_base,
-                        model=config.CSR_MODEL,
+                        model=config.CSR_DEPLOYMENT,
                         temperature=config.TEMPERATURE,
                         max_tokens=config.MAX_TOKENS,
                         enable_escalation=True
@@ -217,8 +220,8 @@ def main() -> int:
             "configuration": {
                 "max_turns": config.MAX_TURNS,
                 "temperature": config.TEMPERATURE,
-                "customer_model": config.CUSTOMER_MODEL,
-                "csr_model": config.CSR_MODEL
+                "customer_deployment": config.CUSTOMER_DEPLOYMENT,
+                "csr_deployment": config.CSR_DEPLOYMENT
             },
             "personas_used": [p.name for p in personas]
         }
