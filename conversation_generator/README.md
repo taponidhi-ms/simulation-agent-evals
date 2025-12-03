@@ -244,7 +244,7 @@ python example_usage.py
 - Verify your API key is correct and active
 - Check your Azure OpenAI resource is properly deployed
 - Ensure the deployment names match your Azure OpenAI deployments
-- Verify the endpoint URL is correct (should end with `.cognitiveservices.azure.com/` or `.openai.azure.com/`)
+- Verify the endpoint URL is correct (should end with `.cognitiveservices.azure.com/`)
 
 ### No Conversations Generated
 

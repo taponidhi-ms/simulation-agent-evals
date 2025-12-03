@@ -27,7 +27,7 @@ class LLMClient:
         
         Args:
             api_key: API key for Azure OpenAI
-            azure_endpoint: Azure OpenAI endpoint URL (e.g., https://YOUR-RESOURCE.openai.azure.com/)
+            azure_endpoint: Azure OpenAI endpoint URL (e.g., https://YOUR-RESOURCE.cognitiveservices.azure.com/)
             api_version: API version (default: 2024-02-01)
         """
         if AzureOpenAI is None:
