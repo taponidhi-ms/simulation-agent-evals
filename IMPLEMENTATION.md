@@ -21,7 +21,7 @@ This implementation provides a comprehensive Two-LLM conversation generation fra
 - `ConversationStatus` enum: ACTIVE, RESOLVED, ESCALATED, FAILED
 
 #### 2. LLM Agents (`conversation_generator/agents.py`)
-- `LLMClient`: Unified wrapper for OpenAI and Azure OpenAI APIs
+- `LLMClient`: Wrapper for Azure OpenAI API
 - `CustomerAgent`: Generates customer responses based on persona
 - `CSRAgent`: Generates CSR responses using knowledge base
 
@@ -40,7 +40,7 @@ This implementation provides a comprehensive Two-LLM conversation generation fra
 
 #### 5. Configuration (`conversation_generator/config.py`)
 - Environment variable based (CG_ prefix)
-- OpenAI and Azure OpenAI support
+- Azure OpenAI support
 - Customizable generation parameters
 
 ## Built-in Content
@@ -72,8 +72,9 @@ Categories covered:
 
 ### Basic Usage
 ```bash
-# Set API key in .env file
-CG_OPENAI_API_KEY=your-key-here
+# Set Azure OpenAI credentials in .env file
+CG_AZURE_OPENAI_API_KEY=your-key-here
+CG_AZURE_OPENAI_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
 
 # Run generator
 python generate_conversations.py
@@ -81,13 +82,14 @@ python generate_conversations.py
 
 ### Configuration Options
 ```bash
-CG_OPENAI_API_KEY=required          # OpenAI API key
-CG_OPENAI_API_TYPE=openai           # "openai" or "azure"
-CG_CUSTOMER_MODEL=gpt-4             # Model for customer
-CG_CSR_MODEL=gpt-4                  # Model for CSR
-CG_MAX_TURNS=20                     # Max conversation turns
-CG_TEMPERATURE=0.7                  # LLM temperature
-CG_NUM_CONVERSATIONS=10             # Number to generate
+CG_AZURE_OPENAI_API_KEY=required                        # Azure OpenAI API key
+CG_AZURE_OPENAI_ENDPOINT=required                       # Azure OpenAI endpoint URL
+CG_AZURE_OPENAI_API_VERSION=2024-02-01                  # API version
+CG_CUSTOMER_DEPLOYMENT=gpt-4o-mini                      # Deployment for customer
+CG_CSR_DEPLOYMENT=gpt-4o-mini                           # Deployment for CSR
+CG_MAX_TURNS=20                                         # Max conversation turns
+CG_TEMPERATURE=0.7                                      # LLM temperature
+CG_NUM_CONVERSATIONS=10                                 # Number to generate
 ```
 
 ### Output Format
@@ -121,9 +123,8 @@ Each conversation JSON includes:
 - ✅ Error handling and recovery
 
 ### API Support
-- ✅ OpenAI API
 - ✅ Azure OpenAI API
-- ✅ Configurable models and parameters
+- ✅ Configurable deployments and parameters
 
 ### Output
 - ✅ Structured JSON format
@@ -262,7 +263,7 @@ For issues or questions:
 1. Check README.md for usage instructions
 2. Review example_usage.py for code examples
 3. Verify .env configuration matches .env.example
-4. Check OpenAI API status and quotas
+4. Check Azure OpenAI resource status and deployments
 
 ## Summary
 
