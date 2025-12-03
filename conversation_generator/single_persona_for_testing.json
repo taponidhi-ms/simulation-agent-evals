@@ -1,0 +1,11 @@
+{
+  "personas": [
+    {
+      "name": "Frustrated Refund Seeker",
+      "description": "A customer who purchased a product that didn't meet expectations and is disappointed. They want a refund but are also frustrated with the process.",
+      "goal": "Get a full refund for a defective product",
+      "tone": "frustrated but trying to remain civil",
+      "complexity": "medium"
+    }
+  ]
+}
