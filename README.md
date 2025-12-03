@@ -54,7 +54,6 @@ The following settings are **required** and must be provided:
 |---------|---------------------|---------|-------|
 | Access Token | `SA_ACCESS_TOKEN` | (none) - bypasses interactive login |
 | Login Hint | `SA_LOGIN_HINT` | (none) |
-| Output Folder | `SA_OUTPUT_FOLDER` | `output/latest_transcripts` |
 | Days to Fetch | `SA_DAYS_TO_FETCH` | `7` |
 | Client ID | `SA_CLIENT_ID` | Power Platform first-party app |
 | Max Content Size | `SA_MAX_CONTENT_SIZE` | 52428800 (50MB) |
@@ -119,22 +118,15 @@ Transcripts are saved as JSON files using the conversation ID as the filename:
 
 ### Output Folder Structure
 
-- **`output/latest_transcripts/`** - Contains transcripts from the most recent run (tracked in git)
-- **`output/historical_transcripts/{number}/`** - Archives from previous runs (excluded from git)
+By default, transcripts are organized by timestamp in:
 
-### Archiving Behavior
+```
+output/transcripts/{timestamp}/
+```
 
-Before each run, any existing transcripts in `output/latest_transcripts/` are automatically archived:
+Where `{timestamp}` is in the format `YYYYMMDD_HHMMSS` (e.g., `20231215_143022`).
 
-1. The script finds the highest numbered folder in `output/historical_transcripts/`
-2. Creates a new folder with the next sequential number
-3. Copies all existing transcripts to the new historical folder
-4. Clears `output/latest_transcripts/` for the new download
-
-This ensures:
-- The latest transcripts are always in `output/latest_transcripts/`
-- Historical runs are preserved in numbered archives
-- Git only tracks the latest transcripts, not the full history
+Each run creates a new timestamped folder, preserving the history of all downloads automatically.
 
 ## Module Structure
 

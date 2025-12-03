@@ -80,7 +80,6 @@ def main() -> int:
         print(f"Workstream ID: {config.WORKSTREAM_ID}")
         print(f"Days to fetch: {config.DAYS_TO_FETCH}")
         print(f"Max conversations: {config.MAX_CONVERSATIONS}")
-        print(f"Output folder: {config.OUTPUT_FOLDER}")
         print()
 
         # Step 1: Authenticate
@@ -124,7 +123,7 @@ def main() -> int:
         print(f"Errors: {summary.errors}")
 
         if summary.files:
-            print(f"\nFiles saved to: {config.OUTPUT_FOLDER}/")
+            print(f"\nFiles saved to: {downloader.output_folder}/")
 
         return 0
 

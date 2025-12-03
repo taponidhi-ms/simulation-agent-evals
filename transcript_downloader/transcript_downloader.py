@@ -4,7 +4,6 @@ import base64
 import json
 import os
 import re
-import shutil
 from datetime import datetime, timedelta, timezone
 
 from . import config
@@ -20,7 +19,6 @@ class TranscriptDownloader:
         self,
         client: DataverseClient,
         workstream_id: str = config.WORKSTREAM_ID,
-        output_folder: str = config.OUTPUT_FOLDER,
         days_to_fetch: int = config.DAYS_TO_FETCH,
         max_content_size: int = config.MAX_CONTENT_SIZE,
         max_conversations: int | None = None,
@@ -31,7 +29,6 @@ class TranscriptDownloader:
         Args:
             client: Dataverse client instance.
             workstream_id: ID of the workstream to fetch conversations from.
-            output_folder: Folder to save transcript files.
             days_to_fetch: Number of days to look back for conversations.
             max_content_size: Maximum size in bytes for base64 content.
             max_conversations: Maximum number of conversations to download (required, 1-1000).
@@ -58,63 +55,16 @@ class TranscriptDownloader:
             )
         
         self.client = client
-        self.output_folder = os.path.abspath(output_folder)
+        
+        # Create timestamp-based folder
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.output_folder = os.path.abspath(os.path.join("output", "transcripts", timestamp))
         self.days_to_fetch = days_to_fetch
         self.max_content_size = max_content_size
         self.max_conversations = max_conversations
 
-        # Archive existing transcripts before starting new download
-        self._archive_existing_transcripts()
-
         # Ensure output folder exists
         os.makedirs(self.output_folder, exist_ok=True)
-
-    def _archive_existing_transcripts(self) -> None:
-        """
-        Archive existing transcripts from output/latest_transcripts to output/historical_transcripts/{number}.
-        Finds the highest numbered folder and creates the next one.
-        """
-        # Check if latest_transcripts folder exists and has files
-        if not os.path.exists(self.output_folder):
-            return
-        
-        # Get list of files in latest_transcripts
-        files = [f for f in os.listdir(self.output_folder) if f.endswith('.json')]
-        if not files:
-            # No files to archive
-            return
-        
-        # Determine the historical folder path
-        output_dir = os.path.dirname(self.output_folder)
-        historical_base = os.path.join(output_dir, "historical_transcripts")
-        
-        # Find the highest numbered folder
-        next_number = 1
-        if os.path.exists(historical_base):
-            existing_folders = [
-                f for f in os.listdir(historical_base)
-                if os.path.isdir(os.path.join(historical_base, f)) and f.isdigit()
-            ]
-            if existing_folders:
-                max_number = max(int(f) for f in existing_folders)
-                next_number = max_number + 1
-        
-        # Create the new historical folder
-        historical_folder = os.path.join(historical_base, str(next_number))
-        os.makedirs(historical_folder, exist_ok=True)
-        
-        # Copy all files from latest_transcripts to historical folder
-        print(f"Archiving {len(files)} existing transcript(s) to {historical_folder}...")
-        for file in files:
-            src = os.path.join(self.output_folder, file)
-            dst = os.path.join(historical_folder, file)
-            shutil.copy2(src, dst)
-        
-        # Clear the latest_transcripts folder
-        for file in files:
-            os.remove(os.path.join(self.output_folder, file))
-        
-        print(f"Archived transcripts moved to historical run #{next_number}")
 
     def get_conversations(self) -> list[Conversation]:
         """

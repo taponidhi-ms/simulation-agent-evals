@@ -36,9 +36,6 @@ LOGIN_HINT = _get_env("SA_LOGIN_HINT", "")
 # API Settings
 API_VERSION = "v9.2"
 
-# Output Settings
-OUTPUT_FOLDER = _get_env("SA_OUTPUT_FOLDER", "output/latest_transcripts")
-
 # Time Range Settings (in days)
 DAYS_TO_FETCH = int(_get_env("SA_DAYS_TO_FETCH", "7"))
 

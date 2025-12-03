@@ -1,7 +1,3 @@
-# Transcript output folders
-transcripts_output/
-output/historical_transcripts/
-
 # Token cache file (contains sensitive auth tokens)
 .token_cache.json
 
@@ -249,5 +245,4 @@ http-client.private.env.json
 
 # Github Copilot persisted session migrations, see: https://github.com/microsoft/copilot-intellij-feedback/issues/712#issuecomment-3322062215
 .idea/**/copilot.data.migration.*.xml
-/historical_transcripts/
-/output/latest_transcripts/
+/output/
