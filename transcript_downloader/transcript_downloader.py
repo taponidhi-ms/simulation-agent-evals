@@ -4,11 +4,12 @@ import base64
 import json
 import os
 import re
+import shutil
 from datetime import datetime, timedelta, timezone
 
 from . import config
 from .dataverse_client import DataverseClient
-from .models import Annotation, Conversation, DownloadSummary, Transcript
+from .models import Annotation, Conversation, DownloadSummary, Transcript, TranscriptMessage
 from .validators import escape_xml_value, is_safe_path_component, validate_guid
 
 
@@ -62,8 +63,58 @@ class TranscriptDownloader:
         self.max_content_size = max_content_size
         self.max_conversations = max_conversations
 
+        # Archive existing transcripts before starting new download
+        self._archive_existing_transcripts()
+
         # Ensure output folder exists
         os.makedirs(self.output_folder, exist_ok=True)
+
+    def _archive_existing_transcripts(self) -> None:
+        """
+        Archive existing transcripts from output/latest_transcripts to output/historical_transcripts/{number}.
+        Finds the highest numbered folder and creates the next one.
+        """
+        # Check if latest_transcripts folder exists and has files
+        if not os.path.exists(self.output_folder):
+            return
+        
+        # Get list of files in latest_transcripts
+        files = [f for f in os.listdir(self.output_folder) if f.endswith('.json')]
+        if not files:
+            # No files to archive
+            return
+        
+        # Determine the historical folder path
+        output_dir = os.path.dirname(self.output_folder)
+        historical_base = os.path.join(output_dir, "historical_transcripts")
+        
+        # Find the highest numbered folder
+        next_number = 1
+        if os.path.exists(historical_base):
+            existing_folders = [
+                f for f in os.listdir(historical_base)
+                if os.path.isdir(os.path.join(historical_base, f)) and f.isdigit()
+            ]
+            if existing_folders:
+                max_number = max(int(f) for f in existing_folders)
+                next_number = max_number + 1
+        
+        # Create the new historical folder
+        historical_folder = os.path.join(historical_base, str(next_number))
+        os.makedirs(historical_folder, exist_ok=True)
+        
+        # Copy all files from latest_transcripts to historical folder
+        print(f"Archiving {len(files)} existing transcript(s) to {historical_folder}...")
+        for file in files:
+            src = os.path.join(self.output_folder, file)
+            dst = os.path.join(historical_folder, file)
+            shutil.copy2(src, dst)
+        
+        # Clear the latest_transcripts folder
+        for file in files:
+            os.remove(os.path.join(self.output_folder, file))
+        
+        print(f"Archived transcripts moved to historical run #{next_number}")
 
     def get_conversations(self) -> list[Conversation]:
         """
@@ -134,10 +185,6 @@ class TranscriptDownloader:
             # Decode base64 content
             decoded_bytes = base64.b64decode(annotation.document_body)
             decoded_str = decoded_bytes.decode("utf-8")
-
-            # Clean up escaped characters
-            decoded_str = self._unescape_json_string(decoded_str)
-
             return decoded_str
         except Exception as e:
             print(f"Error decoding annotation content: {e}")
@@ -200,33 +247,39 @@ class TranscriptDownloader:
         # Validate conversation_id format
         validated_id = validate_guid(conversation.id, "conversation_id")
 
-        # Build filename
-        timestamp = ""
-        if conversation.created_on:
-            try:
-                # Parse ISO format datetime
-                dt = datetime.fromisoformat(conversation.created_on.replace("Z", "+00:00"))
-                timestamp = dt.strftime("%Y%m%d_%H%M%S")
-            except ValueError:
-                timestamp = "unknown"
-
-        title_part = ""
-        if conversation.title:
-            sanitized_title = self._sanitize_filename(conversation.title)
-            # Additional validation for path safety
-            if is_safe_path_component(sanitized_title):
-                title_part = f"_{sanitized_title}"
-
-        filename = f"transcript_{timestamp}_{validated_id[:8]}{title_part}.json"
+        # Build filename using conversation ID
+        filename = f"{validated_id}.json"
         filepath = os.path.abspath(os.path.join(self.output_folder, filename))
 
         # Verify the file path is within the output folder (prevent path traversal)
         if not filepath.startswith(self.output_folder):
             raise ValueError(f"Path traversal detected: {filepath}")
 
-        # Try to parse as JSON to format nicely
+        # Try to parse as JSON to format nicely and add messages field
         try:
             json_content = json.loads(content)
+            
+            # Add messages field and decodedContent if Content exists and is a JSON string
+            if isinstance(json_content, list):
+                for item in json_content:
+                    if isinstance(item, dict) and "Content" in item:
+                        try:
+                            raw_messages = json.loads(item["Content"])
+                            # Keep original decodedContent for debugging
+                            item["decodedContent"] = raw_messages
+                            # Filter and transform messages to keep only specified fields
+                            if isinstance(raw_messages, list):
+                                filtered_messages = [
+                                    TranscriptMessage.from_dict(msg).to_dict()
+                                    for msg in raw_messages
+                                    if isinstance(msg, dict)
+                                ]
+                                item["messages"] = filtered_messages
+                        except (json.JSONDecodeError, TypeError) as e:
+                            # If Content is not valid JSON, skip adding messages
+                            print(f"  Warning: Content field is not valid JSON: {e}")
+                            pass
+            
             formatted_content = json.dumps(json_content, indent=2, ensure_ascii=False)
         except json.JSONDecodeError:
             formatted_content = content
@@ -274,9 +327,9 @@ class TranscriptDownloader:
                     <attribute name='msdyn_transcriptid' />
                     <attribute name='msdyn_name' />
                     <attribute name='createdon' />
-                    <attribute name='msdyn_liveworkitemid' />
+                    <attribute name='msdyn_liveworkitemidid' />
                     <filter>
-                        <condition attribute='msdyn_liveworkitemid' operator='in'>
+                        <condition attribute='msdyn_liveworkitemidid' operator='in'>
 {value_tags}
                         </condition>
                     </filter>
@@ -293,7 +346,7 @@ class TranscriptDownloader:
             for raw_transcript in raw_transcripts:
                 transcript = Transcript.from_dict(raw_transcript)
                 # Extract the conversation ID from the lookup field
-                conversation_id = raw_transcript.get("_msdyn_liveworkitemid_value")
+                conversation_id = raw_transcript.get("_msdyn_liveworkitemidid_value")
                 if conversation_id:
                     all_transcripts[conversation_id] = transcript
 

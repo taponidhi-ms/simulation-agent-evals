@@ -108,6 +108,102 @@ class Annotation:
 
 
 @dataclass
+class TranscriptMessage:
+    """Represents a single message in a transcript."""
+
+    createdDateTime: str | None = None
+    isControlMessage: bool = False
+    content: str | None = None
+    contentType: str | None = None
+    fromAppName: str | None = None
+    fromAppId: str | None = None
+    fromUserId: str | None = None
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "TranscriptMessage":
+        """
+        Create a TranscriptMessage from raw message data.
+
+        Args:
+            data: Dictionary containing message data.
+
+        Returns:
+            TranscriptMessage instance with filtered fields.
+        """
+        # Extract from.application.displayName and from.application.id
+        from_app_name = None
+        from_app_id = None
+        if "from" in data and isinstance(data["from"], dict):
+            app = data["from"].get("application")
+            if isinstance(app, dict):
+                from_app_name = app.get("displayName")
+                from_app_id = app.get("id")
+
+        return cls(
+            createdDateTime=data.get("createdDateTime"),
+            isControlMessage=data.get("isControlMessage", False),
+            content=data.get("content"),
+            contentType=data.get("contentType"),
+            fromAppName=from_app_name,
+            fromAppId=from_app_id,
+            fromUserId=data.get("fromUserId"),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Convert to dictionary format.
+
+        Returns:
+            Dictionary representation of the message.
+        """
+        return {
+            "createdDateTime": self.createdDateTime,
+            "isControlMessage": self.isControlMessage,
+            "content": self.content,
+            "contentType": self.contentType,
+            "fromAppName": self.fromAppName,
+            "fromAppId": self.fromAppId,
+            "fromUserId": self.fromUserId,
+        }
+
+
+@dataclass
+class TranscriptData:
+    """Represents the complete transcript data with metadata and messages."""
+
+    Content: str  # Original JSON string
+    Type: int
+    Mode: int
+    Tag: str | None = None
+    CreatedOn: str | None = None
+    Sender: str | None = None
+    AttachmentInfo: str | None = None
+    subject: str | None = None
+    annotationid: str | None = None
+    messages: list[TranscriptMessage] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Convert to dictionary format.
+
+        Returns:
+            Dictionary representation of the transcript data.
+        """
+        return {
+            "Content": self.Content,
+            "Type": self.Type,
+            "Mode": self.Mode,
+            "Tag": self.Tag,
+            "CreatedOn": self.CreatedOn,
+            "Sender": self.Sender,
+            "AttachmentInfo": self.AttachmentInfo,
+            "subject": self.subject,
+            "annotationid": self.annotationid,
+            "messages": [msg.to_dict() for msg in self.messages],
+        }
+
+
+@dataclass
 class DownloadSummary:
     """Summary of transcript download operation."""
 
