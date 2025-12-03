@@ -1,180 +1,160 @@
-# Dynamics 365 Transcript Downloader
+# Simulation Agent Evals
 
-This tool downloads conversation transcripts from Dynamics 365 Customer Service workstreams.
+This repository contains tools for evaluating the SimulationAgent feature in Dynamics 365 Customer Service.
+
+## Tools
+
+### 1. Transcript Downloader
+Downloads conversation transcripts from Dynamics 365 Customer Service workstreams.
+
+**[📖 View Documentation](transcript_downloader/README.md)**
+
+**Quick Start:**
+```bash
+# Configure
+cp .env.example .env
+# Edit .env with your Dynamics 365 settings
+
+# Run
+python download_transcripts.py
+```
+
+---
+
+### 2. Conversation Generator
+Generates synthetic conversations between customer and CSR agents using LLMs for testing and evaluation.
+
+**[📖 View Documentation](conversation_generator/README.md)**
+
+**Quick Start:**
+```bash
+# Configure
+cp .env.example .env
+# Add your OpenAI API key to .env: CG_OPENAI_API_KEY=sk-...
+
+# Run
+python generate_conversations.py
+
+# See example (no API key needed)
+python example_usage.py
+```
+
+---
 
 ## Prerequisites
 
-- Python 3.9 or higher
-- Access to a Dynamics 365 Customer Service organization
-- An account with permissions to read conversations and transcripts
+- **Python 3.9 or higher**
+- **For Transcript Downloader**: Access to a Dynamics 365 Customer Service organization
+- **For Conversation Generator**: OpenAI API key or Azure OpenAI access
 
 ## Installation
 
-1. Install the required dependencies:
+1. Clone this repository
 
-```bash
-pip install -r requirements.txt
-```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Configure environment:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
 
 ## Configuration
 
-All settings are configured via environment variables with the `SA_` prefix.
-Configuration can be provided in two ways:
+All settings are configured via environment variables:
+- **Transcript Downloader** uses `SA_` prefix
+- **Conversation Generator** uses `CG_` prefix
 
-1. **Environment file (`.env`)**: Copy `.env.example` to `.env` and fill in your values
-2. **Environment variables**: Set variables directly in your shell (overrides `.env` file)
+Configuration can be provided via:
+1. **Environment file (`.env`)**: Recommended for local development
+2. **Environment variables**: Recommended for CI/CD and production
 
-### Quick Start with .env File
+See `.env.example` for all available options.
 
-```bash
-# Copy the example file
-cp .env.example .env
+## Project Structure
 
-# Edit .env with your values
-nano .env
-
-# Run the script
-python download_transcripts.py
+```
+.
+├── transcript_downloader/      # Transcript downloader module
+│   ├── README.md              # Transcript downloader documentation
+│   ├── __init__.py
+│   ├── auth.py
+│   ├── config.py
+│   ├── dataverse_client.py
+│   ├── models.py
+│   ├── transcript_downloader.py
+│   └── validators.py
+│
+├── conversation_generator/     # Conversation generator module
+│   ├── README.md              # Conversation generator documentation
+│   ├── __init__.py
+│   ├── agents.py
+│   ├── config.py
+│   ├── knowledge_base.py
+│   ├── models.py
+│   ├── orchestrator.py
+│   └── personas.json
+│
+├── knowledge_base/            # Knowledge base for CSR agent
+│   └── faq.json
+│
+├── download_transcripts.py    # Transcript downloader script
+├── generate_conversations.py  # Conversation generator script
+├── example_usage.py          # Example usage (no API key needed)
+├── requirements.txt          # Python dependencies
+├── .env.example             # Example environment configuration
+└── README.md               # This file
 ```
 
-### Required Configuration
+## Documentation
 
-The following settings are **required** and must be provided:
+- **[Transcript Downloader Documentation](transcript_downloader/README.md)** - Detailed guide for downloading transcripts from Dynamics 365
+- **[Conversation Generator Documentation](conversation_generator/README.md)** - Detailed guide for generating synthetic conversations
+- **[Implementation Details](IMPLEMENTATION.md)** - Technical implementation details for the conversation generator
 
-| Setting | Environment Variable | Description |
-|---------|---------------------|-------------|
-| Organization URL | `SA_ORGANIZATION_URL` | Your Dynamics 365 organization URL (e.g., `https://yourorg.crm.dynamics.com`) |
-| Tenant ID | `SA_TENANT_ID` | Your Azure AD tenant ID (GUID format) |
-| Workstream ID | `SA_WORKSTREAM_ID` | The workstream ID to fetch conversations from (GUID format) |
-| Max Conversations | `SA_MAX_CONVERSATIONS` | Maximum number of conversations to download (range: 1-1000) |
+## Usage Examples
 
-### Optional Configuration
-
-| Setting | Environment Variable | Default |
-|---------|---------------------|---------|-------|
-| Access Token | `SA_ACCESS_TOKEN` | (none) - bypasses interactive login |
-| Login Hint | `SA_LOGIN_HINT` | (none) |
-| Days to Fetch | `SA_DAYS_TO_FETCH` | `7` |
-| Client ID | `SA_CLIENT_ID` | Power Platform first-party app |
-| Max Content Size | `SA_MAX_CONTENT_SIZE` | 52428800 (50MB) |
-| Token Cache Path | `SA_TOKEN_CACHE_PATH` | `.token_cache.json` |
-
-### Example Usage
-
-Using environment variables:
+### Transcript Downloader
 ```bash
+# Set environment variables
 export SA_ORGANIZATION_URL="https://yourorg.crm.dynamics.com"
-export SA_TENANT_ID="your-tenant-id-guid"
-export SA_WORKSTREAM_ID="your-workstream-id-guid"
+export SA_TENANT_ID="your-tenant-id"
+export SA_WORKSTREAM_ID="your-workstream-id"
 export SA_MAX_CONVERSATIONS=100
-export SA_LOGIN_HINT="user@yourdomain.com"
+
+# Download transcripts
 python download_transcripts.py
 ```
 
-## Usage
-
-Run the script after configuring your environment:
-
+### Conversation Generator
 ```bash
-python download_transcripts.py
-```
+# Set environment variables
+export CG_OPENAI_API_KEY="sk-your-api-key"
+export CG_NUM_CONVERSATIONS=10
 
-## Authentication
-
-The script supports multiple authentication methods with the following priority order:
-
-1. **Environment Variable Token**: If `SA_ACCESS_TOKEN` is set and valid, it will be used directly
-2. **File-based Token Cache**: If a valid cached token exists in `.token_cache.json`, it will be used
-3. **Interactive Browser Authentication**: Opens a browser window for login via MSAL
-
-### Token Caching
-
-Tokens are automatically cached to `.token_cache.json` after successful interactive authentication. This allows subsequent runs to skip the browser login. The cache file is automatically excluded from git via `.gitignore`.
-
-To clear the cached token, simply delete the `.token_cache.json` file or set a new `SA_ACCESS_TOKEN` environment variable.
-
-### Direct Token Authentication
-
-For automation scenarios or when you already have a valid access token, you can set the `SA_ACCESS_TOKEN` environment variable:
-
-```bash
-export SA_ACCESS_TOKEN="your-access-token-here"
-python download_transcripts.py
-```
-
-Or add it to your `.env` file:
-
-```
-SA_ACCESS_TOKEN=your-access-token-here
+# Generate conversations
+python generate_conversations.py
 ```
 
 ## Output
 
-Transcripts are saved as JSON files using the conversation ID as the filename:
+- **Transcript Downloader**: Saves transcripts to `output/transcripts/{timestamp}/`
+- **Conversation Generator**: Saves conversations to `output/conversations/{timestamp}/`
 
-```
-{conversation_id}.json
-```
+Both tools organize output in timestamped folders for easy tracking and version control.
 
-### Output Folder Structure
+## Support
 
-By default, transcripts are organized by timestamp in:
+For detailed documentation on each tool, see:
+- [Transcript Downloader Documentation](transcript_downloader/README.md)
+- [Conversation Generator Documentation](conversation_generator/README.md)
 
-```
-output/transcripts/{timestamp}/
-```
+For implementation details and architecture:
+- [Implementation Documentation](IMPLEMENTATION.md)
 
-Where `{timestamp}` is in the format `YYYYMMDD_HHMMSS` (e.g., `20231215_143022`).
+## License
 
-Each run creates a new timestamped folder, preserving the history of all downloads automatically.
-
-## Module Structure
-
-```
-transcript_downloader/
-├── __init__.py              # Package initialization
-├── config.py                # Configuration settings
-├── auth.py                  # Authentication module (MSAL)
-├── dataverse_client.py      # Dataverse Web API client
-├── models.py                # Data models (Conversation, Transcript, Annotation, DownloadSummary)
-├── transcript_downloader.py # Main transcript download logic
-└── validators.py            # Input validation utilities
-```
-
-## Data Models
-
-The package uses typed dataclasses for better type safety and IDE support:
-
-- **`Conversation`** - Represents a D365 live work item with id, title, created_on
-- **`Transcript`** - Represents a transcript record with id, name, created_on
-- **`Annotation`** - Represents an annotation with id, document_body, filename, mimetype
-- **`DownloadSummary`** - Summary of download operation with counts and file list
-
-## How It Works
-
-1. **Authentication**: Uses MSAL to authenticate with Azure AD and get an access token for Dynamics 365
-2. **Fetch Conversations**: Queries the `msdyn_ocliveworkitem` table for conversations in the specified workstream
-3. **Fetch Transcripts**: For each conversation, queries the `msdyn_transcript` table
-4. **Fetch Annotations**: Retrieves the `annotation` record containing the transcript content
-5. **Decode & Save**: Decodes the base64-encoded document body and saves it as a formatted JSON file
-
-## Troubleshooting
-
-### Authentication Errors
-
-- Ensure you have the correct tenant ID
-- Verify your account has access to the Dynamics 365 organization
-- Check that the organization URL is correct
-
-### No Transcripts Found
-
-- Verify the workstream ID is correct
-- Ensure there are conversations with transcripts in the specified time range
-- Check that transcripts exist in the system for the conversations
-
-### Permission Errors
-
-- Your account needs read access to:
-  - `msdyn_ocliveworkitem` (Conversations)
-  - `msdyn_transcript` (Transcripts)
-  - `annotation` (Notes/Attachments)
+This project is part of Microsoft's Dynamics 365 Customer Service development.

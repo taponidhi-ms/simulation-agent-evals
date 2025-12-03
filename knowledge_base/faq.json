@@ -1,0 +1,100 @@
+{
+  "items": [
+    {
+      "category": "returns",
+      "question": "What is your return policy?",
+      "answer": "We offer a 30-day return policy for most items. Products must be unused and in original packaging. Refunds are processed within 5-7 business days after we receive the returned item.",
+      "tags": ["returns", "refund", "policy"]
+    },
+    {
+      "category": "returns",
+      "question": "How do I initiate a return?",
+      "answer": "To initiate a return, log into your account, go to Order History, select the order, and click 'Return Items'. Follow the prompts to print a prepaid return label. Drop off the package at any authorized shipping location.",
+      "tags": ["returns", "process", "how-to"]
+    },
+    {
+      "category": "returns",
+      "question": "Can I get a refund for a defective product?",
+      "answer": "Yes, defective products are eligible for a full refund or replacement, even outside the normal return window. Please contact us with photos of the defect and your order number.",
+      "tags": ["returns", "defective", "warranty"]
+    },
+    {
+      "category": "shipping",
+      "question": "How long does shipping take?",
+      "answer": "Standard shipping takes 5-7 business days. Express shipping (2-3 days) and overnight shipping are also available for additional fees. Shipping times exclude weekends and holidays.",
+      "tags": ["shipping", "delivery", "timeline"]
+    },
+    {
+      "category": "shipping",
+      "question": "How can I track my order?",
+      "answer": "Once your order ships, you'll receive a tracking number via email. You can also track your order by logging into your account and viewing Order History. Click on the order to see tracking details.",
+      "tags": ["shipping", "tracking", "order status"]
+    },
+    {
+      "category": "shipping",
+      "question": "What if my package is lost or delayed?",
+      "answer": "If your package hasn't arrived within the estimated delivery window, please contact us with your order number. We'll investigate with the carrier and either locate the package or send a replacement at no charge.",
+      "tags": ["shipping", "lost package", "delayed"]
+    },
+    {
+      "category": "account",
+      "question": "How do I reset my password?",
+      "answer": "Click 'Forgot Password' on the login page. Enter your email address, and we'll send you a password reset link. The link expires in 24 hours. If you don't receive the email, check your spam folder.",
+      "tags": ["account", "password", "security"]
+    },
+    {
+      "category": "account",
+      "question": "My account is locked. What should I do?",
+      "answer": "Accounts are locked after 5 failed login attempts for security. Wait 30 minutes and try again, or use the 'Forgot Password' option to reset your password immediately.",
+      "tags": ["account", "locked", "security"]
+    },
+    {
+      "category": "products",
+      "question": "Do you offer a warranty on products?",
+      "answer": "Most products come with a 1-year manufacturer warranty covering defects in materials and workmanship. Extended warranties are available for purchase on select items. Check the product page for specific warranty information.",
+      "tags": ["warranty", "products", "coverage"]
+    },
+    {
+      "category": "products",
+      "question": "How do I know if a product is in stock?",
+      "answer": "Product availability is shown on each product page. If an item is out of stock, you can sign up for email notifications when it's back in stock. In-stock items typically ship within 1-2 business days.",
+      "tags": ["products", "inventory", "availability"]
+    },
+    {
+      "category": "billing",
+      "question": "When will I be charged for my order?",
+      "answer": "Your payment method is charged when your order ships, not when you place the order. For pre-orders, you'll be charged when the item becomes available and ships.",
+      "tags": ["billing", "payment", "charges"]
+    },
+    {
+      "category": "billing",
+      "question": "I see a duplicate charge on my account. What happened?",
+      "answer": "Duplicate charges are usually authorization holds that will drop off within 3-5 business days. If you see an actual duplicate charge after 5 days, contact us with your order number and we'll issue a refund immediately.",
+      "tags": ["billing", "duplicate charge", "refund"]
+    },
+    {
+      "category": "technical",
+      "question": "The product isn't working as expected. How do I troubleshoot?",
+      "answer": "First, try restarting the product and checking all connections. Consult the user manual or online documentation for troubleshooting steps. If issues persist, contact our technical support team for personalized assistance.",
+      "tags": ["technical", "troubleshooting", "support"]
+    },
+    {
+      "category": "technical",
+      "question": "Where can I find the user manual?",
+      "answer": "User manuals are available on the product page under 'Documentation' or in your account under 'My Products'. You can also contact support to have a manual emailed to you.",
+      "tags": ["technical", "manual", "documentation"]
+    },
+    {
+      "category": "pricing",
+      "question": "Do you offer price matching?",
+      "answer": "Yes, we match prices from authorized retailers for identical products. The competitor's price must be current and verifiable. Contact us within 14 days of purchase with proof of the lower price.",
+      "tags": ["pricing", "price match", "policy"]
+    },
+    {
+      "category": "general",
+      "question": "How do I contact customer support?",
+      "answer": "You can reach us via live chat (available 9 AM - 6 PM EST), email at support@example.com, or phone at 1-800-SUPPORT. Average response time for email is 24 hours.",
+      "tags": ["support", "contact", "hours"]
+    }
+  ]
+}
