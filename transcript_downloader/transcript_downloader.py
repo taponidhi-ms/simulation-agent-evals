@@ -114,7 +114,7 @@ class TranscriptDownloader:
 
     def get_transcript_for_conversation(self, conversation_id: str) -> Transcript | None:
         """
-        Fetch the transcript record for a conversation.
+        Fetch the transcript record for a conversation using FetchXML.
 
         Args:
             conversation_id: The ID of the live work item (conversation).
@@ -124,16 +124,25 @@ class TranscriptDownloader:
         """
         # Validate conversation_id is a valid GUID to prevent injection
         validated_id = validate_guid(conversation_id, "conversation_id")
+        safe_conversation_id = escape_xml_value(validated_id)
 
-        # Query transcripts linked to this conversation
-        # The field linking transcript to liveworkitem is _msdyn_liveworkitemid_value
-        # OData GUID values don't need quotes when used directly
-        filter_query = f"_msdyn_liveworkitemid_value eq '{validated_id}'"
+        # Build FetchXML query to fetch transcript by conversation ID
+        fetch_xml = f"""
+        <fetch top='1'>
+            <entity name='msdyn_transcript'>
+                <attribute name='msdyn_transcriptid' />
+                <attribute name='msdyn_name' />
+                <attribute name='createdon' />
+                <filter type='and'>
+                    <condition attribute='msdyn_liveworkitemid' operator='eq' value='{safe_conversation_id}'/>
+                </filter>
+            </entity>
+        </fetch>
+        """
 
-        raw_transcripts = self.client.query_entities(
+        raw_transcripts = self.client.execute_fetch_xml(
             entity_name="msdyn_transcript",
-            filter_query=filter_query,
-            select=["msdyn_transcriptid", "msdyn_name", "createdon"],
+            fetch_xml=fetch_xml,
         )
 
         if raw_transcripts:
@@ -142,7 +151,7 @@ class TranscriptDownloader:
 
     def get_annotation_for_transcript(self, transcript_id: str) -> Annotation | None:
         """
-        Fetch the annotation record for a transcript.
+        Fetch the annotation record for a transcript using FetchXML.
 
         Args:
             transcript_id: The ID of the transcript.
@@ -153,14 +162,26 @@ class TranscriptDownloader:
         try:
             # Validate transcript_id is a valid GUID to prevent injection
             validated_id = validate_guid(transcript_id, "transcript_id")
+            safe_transcript_id = escape_xml_value(validated_id)
 
-            # The annotation's objectid should reference the transcript
-            filter_query = f"_objectid_value eq '{validated_id}'"
+            # Build FetchXML query to fetch annotation by transcript ID
+            fetch_xml = f"""
+            <fetch top='1'>
+                <entity name='annotation'>
+                    <attribute name='annotationid' />
+                    <attribute name='documentbody' />
+                    <attribute name='filename' />
+                    <attribute name='mimetype' />
+                    <filter type='and'>
+                        <condition attribute='objectid' operator='eq' value='{safe_transcript_id}'/>
+                    </filter>
+                </entity>
+            </fetch>
+            """
 
-            raw_annotations = self.client.query_entities(
+            raw_annotations = self.client.execute_fetch_xml(
                 entity_name="annotation",
-                filter_query=filter_query,
-                select=["annotationid", "documentbody", "filename", "mimetype"],
+                fetch_xml=fetch_xml,
             )
 
             if raw_annotations:
@@ -295,34 +316,163 @@ class TranscriptDownloader:
 
         return filepath
 
+    def get_all_transcripts_for_conversations(
+        self, conversation_ids: list[str]
+    ) -> dict[str, Transcript]:
+        """
+        Fetch all transcripts for multiple conversations in a single query using FetchXML.
+
+        Args:
+            conversation_ids: List of conversation IDs to fetch transcripts for.
+
+        Returns:
+            Dictionary mapping conversation_id to Transcript object.
+        """
+        if not conversation_ids:
+            return {}
+
+        # Validate all conversation IDs
+        validated_ids = [validate_guid(cid, "conversation_id") for cid in conversation_ids]
+        
+        # Build FetchXML with multiple conditions (using OR)
+        conditions = ""
+        for conv_id in validated_ids:
+            safe_id = escape_xml_value(conv_id)
+            conditions += f"                    <condition attribute='msdyn_liveworkitemid' operator='eq' value='{safe_id}'/>\n"
+
+        fetch_xml = f"""
+        <fetch>
+            <entity name='msdyn_transcript'>
+                <attribute name='msdyn_transcriptid' />
+                <attribute name='msdyn_name' />
+                <attribute name='createdon' />
+                <attribute name='msdyn_liveworkitemid' />
+                <filter type='or'>
+{conditions}                </filter>
+            </entity>
+        </fetch>
+        """
+
+        raw_transcripts = self.client.execute_fetch_xml(
+            entity_name="msdyn_transcript",
+            fetch_xml=fetch_xml,
+        )
+
+        # Map transcripts by conversation ID
+        transcripts_by_conversation = {}
+        for raw_transcript in raw_transcripts:
+            transcript = Transcript.from_dict(raw_transcript)
+            # Extract the conversation ID from the lookup field
+            conversation_id = raw_transcript.get("_msdyn_liveworkitemid_value")
+            if conversation_id:
+                transcripts_by_conversation[conversation_id] = transcript
+
+        return transcripts_by_conversation
+
+    def get_all_annotations_for_transcripts(
+        self, transcript_ids: list[str]
+    ) -> dict[str, Annotation]:
+        """
+        Fetch all annotations for multiple transcripts in a single query using FetchXML.
+
+        Args:
+            transcript_ids: List of transcript IDs to fetch annotations for.
+
+        Returns:
+            Dictionary mapping transcript_id to Annotation object.
+        """
+        if not transcript_ids:
+            return {}
+
+        # Validate all transcript IDs
+        validated_ids = [validate_guid(tid, "transcript_id") for tid in transcript_ids]
+        
+        # Build FetchXML with multiple conditions (using OR)
+        conditions = ""
+        for transcript_id in validated_ids:
+            safe_id = escape_xml_value(transcript_id)
+            conditions += f"                    <condition attribute='objectid' operator='eq' value='{safe_id}'/>\n"
+
+        fetch_xml = f"""
+        <fetch>
+            <entity name='annotation'>
+                <attribute name='annotationid' />
+                <attribute name='documentbody' />
+                <attribute name='filename' />
+                <attribute name='mimetype' />
+                <attribute name='objectid' />
+                <filter type='or'>
+{conditions}                </filter>
+            </entity>
+        </fetch>
+        """
+
+        raw_annotations = self.client.execute_fetch_xml(
+            entity_name="annotation",
+            fetch_xml=fetch_xml,
+        )
+
+        # Map annotations by transcript ID (objectid)
+        annotations_by_transcript = {}
+        for raw_annotation in raw_annotations:
+            annotation = Annotation.from_dict(raw_annotation)
+            # Extract the transcript ID from the objectid field
+            transcript_id = raw_annotation.get("_objectid_value")
+            if transcript_id:
+                annotations_by_transcript[transcript_id] = annotation
+
+        return annotations_by_transcript
+
     def download_all_transcripts(self) -> DownloadSummary:
         """
         Download all transcripts for conversations in the workstream.
+        Uses optimized batch fetching: 1st query fetches closed conversations,
+        2nd query fetches all transcripts, 3rd query fetches all annotations.
 
         Returns:
             DownloadSummary object with success/failure counts.
         """
         summary = DownloadSummary()
 
-        # Get all conversations
+        # Get all conversations (1st query)
         conversations = self.get_conversations()
         summary.total_conversations = len(conversations)
 
+        if not conversations:
+            print("No conversations found.")
+            return summary
+
+        # Batch fetch all transcripts for all conversations (2nd query - optimized)
+        print(f"\nFetching transcripts for {len(conversations)} conversations...")
+        conversation_ids = [c.id for c in conversations]
+        transcripts_by_conversation = self.get_all_transcripts_for_conversations(conversation_ids)
+        
+        print(f"Found {len(transcripts_by_conversation)} transcripts.")
+        summary.transcripts_found = len(transcripts_by_conversation)
+
+        if not transcripts_by_conversation:
+            print("No transcripts found for any conversations.")
+            return summary
+
+        # Batch fetch all annotations for all transcripts (3rd query - optimized)
+        print(f"\nFetching annotations for {len(transcripts_by_conversation)} transcripts...")
+        transcript_ids = [t.id for t in transcripts_by_conversation.values()]
+        annotations_by_transcript = self.get_all_annotations_for_transcripts(transcript_ids)
+        
+        print(f"Found {len(annotations_by_transcript)} annotations.")
+
+        # Process each conversation with its transcript and annotation
         for i, conversation in enumerate(conversations, 1):
             print(f"\nProcessing conversation {i}/{len(conversations)}: {conversation.id}")
 
             # Get transcript for this conversation
-            transcript = self.get_transcript_for_conversation(conversation.id)
-
+            transcript = transcripts_by_conversation.get(conversation.id)
             if not transcript:
                 print(f"  No transcript found for conversation {conversation.id}")
                 continue
 
-            summary.transcripts_found += 1
-
             # Get annotation for transcript
-            annotation = self.get_annotation_for_transcript(transcript.id)
-
+            annotation = annotations_by_transcript.get(transcript.id)
             if not annotation:
                 print(f"  No annotation found for transcript {transcript.id}")
                 summary.errors += 1
@@ -330,7 +480,6 @@ class TranscriptDownloader:
 
             # Decode annotation content
             content = self.decode_annotation_content(annotation)
-
             if not content:
                 print(f"  No content available for transcript {transcript.id}")
                 summary.errors += 1
