@@ -45,7 +45,8 @@ class CXAEvalsTransformer:
         Transform a single conversation generator message to CXA format.
         
         Each message is converted to a CXA message with role and content only.
-        CSR messages become assistant messages, customer messages become user messages.
+        CSR messages become Assistant messages, customer messages become Customer messages.
+        System messages are skipped.
         
         Args:
             msg: Message from conversation generator
@@ -58,23 +59,20 @@ class CXAEvalsTransformer:
         content = msg.get("content", "")
         
         if role == "system":
-            # System message at the start
-            return [CXAMessage(
-                role="system",
-                content=f"Instructions: You are a {{{{{self.task}}}}} agent. Follow business knowledge and ground responses in provided sources."
-            )]
+            # Skip system messages
+            return []
         
         elif role == "csr":
-            # CSR messages become assistant messages
+            # CSR messages become Assistant messages
             return [CXAMessage(
-                role="assistant",
+                role="Assistant",
                 content=content
             )]
         
         elif role == "customer":
-            # Customer messages become user messages
+            # Customer messages become Customer messages
             return [CXAMessage(
-                role="user",
+                role="Customer",
                 content=content
             )]
         
@@ -98,13 +96,7 @@ class CXAEvalsTransformer:
         # Transform messages
         cxa_messages: List[CXAMessage] = []
         
-        # Add system message first
-        cxa_messages.append(CXAMessage(
-            role="system",
-            content=f"Instructions: You are a {{{{{self.task}}}}} agent. Follow business knowledge and ground responses in provided sources."
-        ))
-        
-        # Transform conversation messages
+        # Transform conversation messages (skip system messages)
         for i, msg in enumerate(messages):
             prev_msg = messages[i - 1] if i > 0 else None
             transformed = self._transform_message_to_cxa(msg, prev_msg)

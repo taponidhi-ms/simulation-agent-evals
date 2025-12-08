@@ -31,9 +31,9 @@ flowchart TD
     style P fill:#fff4e1
     
     subgraph Transform Details
-        K --> K1[System → System Message]
+        K --> K1[System → Skipped]
         K --> K2[CSR → Assistant Message]
-        K --> K3[Customer → User Message]
+        K --> K3[Customer → Customer Message]
     end
 ```
 
@@ -125,15 +125,11 @@ The transformer creates a JSON file in the CXA Evals format:
       "scenario_name": "SimulationAgent",
       "conversation": [
         {
-          "role": "system",
-          "content": "Instructions: You are a {{Customer Support}} agent..."
-        },
-        {
-          "role": "assistant",
+          "role": "Assistant",
           "content": "Hello! How can I help you today?"
         },
         {
-          "role": "user",
+          "role": "Customer",
           "content": "I need help with my account"
         }
       ],
@@ -157,9 +153,9 @@ The transformer creates a JSON file in the CXA Evals format:
 
 | Generator Role | CXA Evals Format |
 |----------------|------------------|
-| `system` | `system` message with task instructions |
-| `csr` | `assistant` message with content |
-| `customer` | `user` message |
+| `csr` | `Assistant` message with content |
+| `customer` | `Customer` message |
+| `system` | Skipped (not included in output) |
 
 ## Integration with CXA Evals
 
