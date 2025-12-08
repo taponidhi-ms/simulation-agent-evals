@@ -197,6 +197,11 @@ After transformation, use the output file with the CXA Evals framework:
      }
    }
    ```
+   
+   **Important Notes**:
+   - Replace `cxa_evals_output_20241208_123500` with the actual timestamped directory name from your transformer run
+   - The path in `sa_custom_config_multi_turn.json` uses Windows-style backslashes (`\`). Adjust for your platform if needed.
+   - The `.\\data\\` prefix is relative to where the CXA Evals CLI is executed. Adjust the path based on your working directory.
 
 3. **Run CXA Evals** with the configuration file.
 

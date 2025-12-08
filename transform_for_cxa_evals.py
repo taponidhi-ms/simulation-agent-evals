@@ -37,7 +37,8 @@ def main() -> int:
     try:
         # Create timestamped output directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_dir = Path("cxa_evals_transformer/output") / f"{config.OUTPUT_FOLDER_PREFIX}{timestamp}"
+        base_output_dir = Path(__file__).parent / "cxa_evals_transformer" / "output"
+        output_dir = base_output_dir / f"{config.OUTPUT_FOLDER_PREFIX}{timestamp}"
         output_dir.mkdir(parents=True, exist_ok=True)
         
         # Create full output file path
