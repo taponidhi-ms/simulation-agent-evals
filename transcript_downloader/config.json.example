@@ -1,0 +1,15 @@
+{
+  "organization_url": "https://yourorg.crm.dynamics.com",
+  "tenant_id": "00000000-0000-0000-0000-000000000000",
+  "workstream_id": "00000000-0000-0000-0000-000000000000",
+  "max_conversations": 100,
+  "client_id": "51f81489-12ee-4a9e-aaae-a2591f45987d",
+  "login_hint": "",
+  "api_version": "v9.2",
+  "days_to_fetch": 7,
+  "page_size": 50,
+  "max_content_size": 52428800,
+  "access_token": "",
+  "token_cache_path": ".token_cache.json",
+  "output_dir": "transcript_downloader/output/"
+}

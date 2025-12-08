@@ -1,62 +1,73 @@
 """
 Configuration settings for conversation generator.
 
-This module loads configuration from environment variables with CG_ prefix
-(Conversation Generator).
+This module loads configuration from config.json file and validates it using
+the ConversationGeneratorConfig schema.
 """
 
+import json
 import os
-from dotenv import load_dotenv
+from pathlib import Path
+from typing import Optional
 
-# Load environment variables from .env file
-load_dotenv()
+from .config_schema import ConversationGeneratorConfig
 
-# =============================================================================
-# Azure OpenAI Configuration
-# =============================================================================
 
-# Azure OpenAI API Configuration
-AZURE_OPENAI_API_KEY = os.getenv("CG_AZURE_OPENAI_API_KEY", "")
-AZURE_OPENAI_ENDPOINT = os.getenv("CG_AZURE_OPENAI_ENDPOINT", "")
-AZURE_OPENAI_API_VERSION = os.getenv("CG_AZURE_OPENAI_API_VERSION", "2024-02-01")
+def load_config(config_path: Optional[str] = None) -> ConversationGeneratorConfig:
+    """
+    Load and validate configuration from JSON file.
+    
+    Args:
+        config_path: Path to config.json file. If None, uses default location.
+        
+    Returns:
+        Validated ConversationGeneratorConfig object
+        
+    Raises:
+        FileNotFoundError: If config file doesn't exist
+        ValueError: If config is invalid or missing required fields
+    """
+    if config_path is None:
+        # Default to config.json in the same directory as this file
+        config_dir = Path(__file__).parent
+        config_path = config_dir / "config.json"
+    else:
+        config_path = Path(config_path)
+    
+    if not config_path.exists():
+        raise FileNotFoundError(
+            f"Configuration file not found: {config_path}\n"
+            f"Please create a config.json file in the conversation_generator directory."
+        )
+    
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config_data = json.load(f)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON in config file: {e}")
+    
+    try:
+        config = ConversationGeneratorConfig(**config_data)
+    except Exception as e:
+        raise ValueError(f"Configuration validation failed: {e}")
+    
+    return config
 
-# Deployment names (model deployments in Azure)
-CUSTOMER_DEPLOYMENT = os.getenv("CG_CUSTOMER_DEPLOYMENT", "gpt-4o-mini")
-CSR_DEPLOYMENT = os.getenv("CG_CSR_DEPLOYMENT", "gpt-4o-mini")
 
-# =============================================================================
-# Generation Configuration
-# =============================================================================
+# Load configuration at module import
+_config = load_config()
 
-# Maximum number of turns per conversation
-MAX_TURNS = int(os.getenv("CG_MAX_TURNS", "20"))
+# Export config values as module-level variables for backward compatibility
+AZURE_OPENAI_API_KEY = _config.azure_openai_api_key
+AZURE_OPENAI_ENDPOINT = _config.azure_openai_endpoint
+AZURE_OPENAI_API_VERSION = _config.azure_openai_api_version
+CUSTOMER_DEPLOYMENT = _config.customer_deployment
+CSR_DEPLOYMENT = _config.csr_deployment
+MAX_TURNS = _config.max_turns
+TEMPERATURE = _config.temperature
+MAX_TOKENS = _config.max_tokens
+NUM_CONVERSATIONS = _config.num_conversations
+KNOWLEDGE_BASE_PATH = _config.knowledge_base_path
+OUTPUT_DIR = _config.output_dir
+PERSONA_TEMPLATES_PATH = _config.persona_templates_path
 
-# LLM temperature (0.0 to 2.0, higher = more creative)
-TEMPERATURE = float(os.getenv("CG_TEMPERATURE", "0.7"))
-
-# Maximum tokens per response
-MAX_TOKENS = int(os.getenv("CG_MAX_TOKENS", "500"))
-
-# Number of conversations to generate
-NUM_CONVERSATIONS = int(os.getenv("CG_NUM_CONVERSATIONS", "10"))
-
-# =============================================================================
-# Knowledge Base Configuration
-# =============================================================================
-
-# Path to knowledge base directory or file
-KNOWLEDGE_BASE_PATH = os.getenv("CG_KNOWLEDGE_BASE_PATH", "data/knowledge_base/")
-
-# =============================================================================
-# Output Configuration
-# =============================================================================
-
-# Output directory for generated conversations
-OUTPUT_DIR = os.getenv("CG_OUTPUT_DIR", "output/conversations/")
-
-# =============================================================================
-# Persona Configuration
-# =============================================================================
-
-# Path to persona templates file
-PERSONA_TEMPLATES_PATH = os.getenv("CG_PERSONA_TEMPLATES_PATH", "conversation_generator/personas.json")
