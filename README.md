@@ -100,8 +100,9 @@ See `.env.example` for all available options.
 │   ├── orchestrator.py
 │   └── personas.json
 │
-├── knowledge_base/            # Knowledge base for CSR agent
-│   └── faq.json
+├── data/
+│   ├── knowledge_base/            # Knowledge base for CSR agent~~~~
+│       └── faq.json
 │
 ├── download_transcripts.py    # Transcript downloader script
 ├── generate_conversations.py  # Conversation generator script

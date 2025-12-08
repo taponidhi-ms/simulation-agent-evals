@@ -1,0 +1,84 @@
+{
+  "team_name": "test_team",
+  "agent_name": "agent",
+  "source": {
+    "source_folder_path": "data\\cxa-evals\\input\\example_multi_turn_conversations.json",
+    "source_file_type": "json",
+    "variable_columns": ["task", "groundness_fact"]
+  },
+  "eval_config": {
+    "options": [
+      "enable_logging",
+      "dev"
+    ],
+    "turn_mode": "multi_turn",
+    "lower_bound_score":1,
+    "upper_bound_score":10,
+    "score_threshold":7,
+    "metric": "custom",
+    "custom_rules": [
+      {
+        "scenario_name": "password_reset",
+        "rules": [
+          {
+            "rule_name": "tone",
+            "rule_category": "Conversationality",
+            "rule_description": "The assistant should maintain professional tone throughout the conversation.",
+            "scoring_hint":""
+          },
+          {
+            "rule_name": "action_recommendation",
+            "rule_category": "Usefulness",
+            "rule_description": "The assistant should accurately interpret the user's intent and provide a resolution that is factually correct and actionable. The resolution must be grounded in verified information : {{groundness_fact}}",
+            "scoring_hint":""
+          }
+        ]
+      }
+    ]
+  },
+  "llm_config": {
+    "adapters": {
+      "capi": {
+        "enabled": true,
+        "type": "capi",
+        "model": "gpt-41-mini-2025-04-14",
+        "prompt_parameters": {
+          "temperature": 0,
+          "top_p": 1,
+          "max_completion_tokens": 2000
+        },
+        "authorization": {
+          "endpoint": "https://capi-resourceproxy.wus-il002.gateway.test.island.powerapps.com/v0/resourceproxy/envid.360f9d1b-9200-f011-9981-000d3a32ddb4/azureopenai/llm/gpt-41-mini-2025-04-14/chatcompletions",
+          "client_id": "079f5a03-090f-4720-90b9-e03942091e6e",
+          "tenant_id": "f8cdef31-a31e-4b4a-93e4-5f571e91255a",
+          "resource_uri": "api://4309f23c-178a-4fc7-a36e-68d8fee6ca7b",
+          "key_vault_name": "crmanalyticstip",
+          "certificate_secret_name": "dynamics-cca-data-analytics-test",
+          "headers":{
+            "x-ms-source": "{\"consumptionSource\":\"Api\",\"partnerSource\":\"D365Sales.Copilot.CXAEvals\"}",
+            "x-ms-client-principal-id": "b1ee8c0b-c63a-45f8-b198-90ed3dd5b87e",
+            "x-ms-client-tenant-id": "04f02989-9a26-4c15-bf84-5ee3f23b1301"
+          },
+          "token_cache_seconds": 300
+        },
+        "timeout_seconds": 60,
+        "retries": 2
+      }
+    }
+  },
+  "sink": {
+    "type": "LocalFileWriter",
+    "output_folder_path": "data\\cxa-evals\\output\\"
+  },
+  "reporting":{
+    "enabled": false,
+    "authorization": {
+      "client_id": "079f5a03-090f-4720-90b9-e03942091e6e",
+      "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+      "resource_uri": "api://evaluation-results-api",
+      "key_vault_name": "crmanalyticstip",
+      "certificate_secret_name": "dynamics-cca-data-analytics-test",
+      "token_cache_seconds": 3600
+    }    
+  }
+}

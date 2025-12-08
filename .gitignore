@@ -246,3 +246,11 @@ http-client.private.env.json
 # Github Copilot persisted session migrations, see: https://github.com/microsoft/copilot-intellij-feedback/issues/712#issuecomment-3322062215
 .idea/**/copilot.data.migration.*.xml
 /output/
+/Microsoft.CXA.AIEvals.Cli.exe
+
+# Exclude cxa-evals directory but keep specific example files
+data/cxa-evals/*
+data/cxa-evals/input/*
+data/cxa-evals/output/*
+!data/cxa-evals/example_custom_config_multi_turn.json
+!data/cxa-evals/input/example_multi_turn_conversations.json

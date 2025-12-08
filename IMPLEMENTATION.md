@@ -158,7 +158,7 @@ Edit `conversation_generator/personas.json`:
 ```
 
 ### Extending Knowledge Base
-Add to `knowledge_base/faq.json`:
+Add to `data/knowledge_base/faq.json`:
 ```json
 {
   "items": [{
@@ -208,7 +208,7 @@ python -c "from conversation_generator import *; print('All imports successful')
 - `conversation_generator/orchestrator.py`
 - `conversation_generator/personas.json`
 - `generate_conversations.py`
-- `knowledge_base/faq.json`
+- `data/knowledge_base/faq.json`
 - `example_usage.py`
 - `IMPLEMENTATION.md` (this file)
 

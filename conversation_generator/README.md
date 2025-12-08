@@ -103,7 +103,7 @@ Personas are defined in `conversation_generator/personas.json` and can be custom
 
 ### Knowledge Base
 
-The CSR agent uses a knowledge base to answer questions. The default knowledge base (`knowledge_base/faq.json`) includes:
+The CSR agent uses a knowledge base to answer questions. The default knowledge base (`data/knowledge_base/faq.json`) includes:
 - Return and refund policies
 - Shipping and tracking information
 - Account management
@@ -200,7 +200,7 @@ Edit `conversation_generator/personas.json`:
 
 ### Extending Knowledge Base
 
-Add items to `knowledge_base/faq.json`:
+Add items to `data/knowledge_base/faq.json`:
 
 ```json
 {

@@ -44,7 +44,7 @@ def main():
     print("2. Loading Knowledge Base")
     print("-" * 50)
     
-    kb = KnowledgeBase('knowledge_base/faq.json')
+    kb = KnowledgeBase('data/knowledge_base/faq.json')
     items = kb.get_all_items()
     print(f"Loaded {len(items)} knowledge items:")
     
