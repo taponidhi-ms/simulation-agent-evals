@@ -2,6 +2,39 @@
 
 Downloads conversation transcripts from Dynamics 365 Customer Service workstreams.
 
+## Flow Diagram
+
+```mermaid
+flowchart TD
+    A[Start: download_transcripts.py] --> B[Load Configuration<br/>config.json]
+    B --> C[Initialize Authentication]
+    C --> D{Auth Method}
+    D -->|SA_ACCESS_TOKEN exists| E[Use Access Token]
+    D -->|Cached Token valid| F[Use Cached Token]
+    D -->|No valid token| G[Interactive Browser Login<br/>MSAL]
+    E --> H[Initialize Dataverse Client]
+    F --> H
+    G --> I[Cache Token]
+    I --> H
+    H --> J[Create Timestamped Output Directory<br/>output/YYYYMMDD_HHMMSS/]
+    J --> K[Fetch Conversations from Workstream<br/>FetchXML Query]
+    K --> L{Conversations<br/>Found?}
+    L -->|No| M[End: No Conversations]
+    L -->|Yes| N{For Each Conversation}
+    N --> O[Fetch Transcript Messages]
+    O --> P[Save Transcript JSON]
+    P --> Q{Max Count<br/>Reached?}
+    Q -->|Yes| R[Save Summary Metadata]
+    Q -->|No| N
+    R --> S[End: Transcripts Saved]
+    
+    style A fill:#e1f5e1
+    style M fill:#ffe1e1
+    style S fill:#e1f5e1
+    style J fill:#fff4e1
+    style P fill:#fff4e1
+```
+
 ## Usage
 
 ```bash

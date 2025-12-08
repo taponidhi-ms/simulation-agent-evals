@@ -2,9 +2,46 @@
 
 This module transforms conversation generator output into the format required by the CXA Evals framework for agent performance evaluation.
 
+## Flow Diagram
+
+```mermaid
+flowchart TD
+    A[Start: transform_for_cxa_evals.py] --> B[Load Configuration<br/>config.json]
+    B --> C[Create Timestamped Output Directory<br/>output/prefix_YYYYMMDD_HHMMSS/]
+    C --> D[Initialize Transformer<br/>with Task & Groundness Fact]
+    D --> E[Scan Input Directory<br/>for Conversation JSONs]
+    E --> F{Conversations<br/>Found?}
+    F -->|No| G[Error: No Files Found]
+    F -->|Yes| H{For Each Conversation}
+    H --> I[Load Conversation JSON]
+    I --> J[Extract Persona Metadata]
+    J --> K[Transform Messages<br/>to CXA Format]
+    K --> L[Map CSR → Assistant + Tool Calls]
+    L --> M[Map Customer → User Messages]
+    M --> N[Add to CXA Conversations List]
+    N --> O{More<br/>Files?}
+    O -->|Yes| H
+    O -->|No| P[Save Transformed JSON<br/>with All Conversations]
+    P --> Q[End: Output Saved]
+    
+    style A fill:#e1f5e1
+    style G fill:#ffe1e1
+    style Q fill:#e1f5e1
+    style C fill:#fff4e1
+    style P fill:#fff4e1
+    
+    subgraph Transform Details
+        K --> K1[System → System Message]
+        K --> K2[CSR → Assistant + tool_calls]
+        K --> K3[Customer → User Message]
+    end
+```
+
 ## Overview
 
 The CXA Evals Transformer bridges the gap between the `conversation_generator` module and the CXA Evals framework. It converts synthetic conversations into the multi-turn conversation format expected by CXA Evals, allowing you to evaluate agent performance using the generated conversations.
+
+**Note**: The transformer now creates timestamped output directories under `cxa_evals_transformer/output/` for better organization, similar to the conversation_generator module.
 
 ## Features
 
@@ -30,7 +67,8 @@ cp config.json.example config.json
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `input_dir` | string | Yes | Directory containing conversation generator output files |
-| `output_file` | string | Yes | Output file path for transformed CXA Evals conversations |
+| `output_folder_prefix` | string | No | Prefix for timestamped output folders (default: "cxa_evals_output_") |
+| `output_file` | string | No | Output filename for transformed conversations (default: "sa_multi_turn_conversations.json") |
 | `scenario_name` | string | No | **DEPRECATED** - Ignored. All conversations use "SimulationAgent" |
 | `task` | string | No | Task description for the agent (default: "Customer Support") |
 | `groundness_fact` | string | No | Default groundness fact for conversations (default: "") |
@@ -41,13 +79,16 @@ cp config.json.example config.json
 ```json
 {
   "input_dir": "conversation_generator/output/20241208_123456/",
-  "output_file": "cxa_evals_transformer/cxa-evals/input/sa_multi_turn_conversations.json",
+  "output_folder_prefix": "cxa_evals_output_",
+  "output_file": "sa_multi_turn_conversations.json",
   "scenario_name": "customer_support",
   "task": "Customer Support",
   "groundness_fact": "Knowledge base contains FAQ for customer support.",
   "cxa_evals_dir": "cxa_evals_transformer/cxa-evals/"
 }
 ```
+
+**Note**: The transformer creates a timestamped directory like `cxa_evals_transformer/output/cxa_evals_output_20241208_123456/` and saves the output file inside it.
 
 ## Usage
 
@@ -57,6 +98,7 @@ cp config.json.example config.json
    ```bash
    python generate_conversations.py
    ```
+   This creates output in: `conversation_generator/output/20241208_123456/`
 
 2. **Update config.json** with the path to generated conversations:
    ```json
@@ -69,6 +111,7 @@ cp config.json.example config.json
    ```bash
    python transform_for_cxa_evals.py
    ```
+   This creates output in: `cxa_evals_transformer/output/cxa_evals_output_20241208_123500/sa_multi_turn_conversations.json`
 
 ### Output Format
 
@@ -144,13 +187,13 @@ The transformer automatically maps CSR messages to appropriate tool calls:
 After transformation, use the output file with the CXA Evals framework:
 
 1. **Locate the transformed file**:
-   - Default: `cxa_evals_transformer/cxa-evals/input/sa_multi_turn_conversations.json`
+   - Example: `cxa_evals_transformer/output/cxa_evals_output_20241208_123500/sa_multi_turn_conversations.json`
 
-2. **Update CXA Evals config** to point to this file:
+2. **Update CXA Evals config** (`sa_custom_config_multi_turn.json`) to point to this file:
    ```json
    {
      "source": {
-       "source_folder_path": "./cxa_evals_transformer/cxa-evals/input/sa_multi_turn_conversations.json"
+       "source_folder_path": ".\\data\\cxa_evals_transformer\\output\\cxa_evals_output_20241208_123500\\sa_multi_turn_conversations.json"
      }
    }
    ```
@@ -169,8 +212,10 @@ cxa_evals_transformer/
 ├── models.py                # Data models for CXA format
 ├── transformer.py           # Transformation logic
 ├── README.md               # This file
+├── output/                 # Timestamped output directories
+│   └── cxa_evals_output_YYYYMMDD_HHMMSS/
+│       └── sa_multi_turn_conversations.json
 └── cxa-evals/              # CXA Evals related files
-    ├── input/              # Transformed conversation inputs
     ├── output/             # CXA Evals evaluation outputs
     ├── example_custom_config_multi_turn.json
     └── sa_custom_config_multi_turn.json
@@ -231,11 +276,15 @@ Transform multiple conversation batches by updating `input_dir`:
 # Transform batch 1
 # Update config.json: "input_dir": "conversation_generator/output/20241208_120000/"
 python transform_for_cxa_evals.py
+# Creates: cxa_evals_transformer/output/cxa_evals_output_20241208_120100/
 
 # Transform batch 2
 # Update config.json: "input_dir": "conversation_generator/output/20241208_130000/"
 python transform_for_cxa_evals.py
+# Creates: cxa_evals_transformer/output/cxa_evals_output_20241208_130100/
 ```
+
+Each run creates a new timestamped output directory, preserving all previous transformations.
 
 ## API Reference
 

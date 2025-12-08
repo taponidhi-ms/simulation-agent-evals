@@ -17,9 +17,13 @@ class CXAEvalsTransformerConfig(BaseModel):
         ...,
         description="Directory containing conversation generator output files"
     )
+    output_folder_prefix: str = Field(
+        default="cxa_evals_output_",
+        description="Prefix for timestamped output folders (e.g., 'cxa_evals_output_' creates 'cxa_evals_output_20241208_120000/')"
+    )
     output_file: str = Field(
-        ...,
-        description="Output file path for transformed CXA Evals conversations"
+        default="sa_multi_turn_conversations.json",
+        description="Output filename for transformed CXA Evals conversations (will be created in timestamped directory)"
     )
     
     # Transformation settings
