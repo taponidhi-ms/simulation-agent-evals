@@ -31,19 +31,19 @@
           {
             "rule_name": "persona_adherence",
             "rule_category": "Conversationality",
-            "rule_description": "The customer (user) should maintain consistency with their assigned persona throughout the conversation. The customer's persona is: {{persona_name}} - {{persona_description}}. The customer should communicate with the tone: {{persona_tone}}.",
+            "rule_description": "The Customer should maintain consistency with their assigned persona throughout the conversation. The Customer's persona is: {{persona_name}} - {{persona_description}}. The Customer should communicate with the tone: {{persona_tone}}.",
             "scoring_hint": ""
           },
           {
             "rule_name": "goal_pursuit",
             "rule_category": "Usefulness",
-            "rule_description": "The customer (user) should actively work towards achieving their goal: {{persona_goal}}. The customer's messages should reflect their intent to accomplish this goal.",
+            "rule_description": "The Customer should actively work towards achieving their goal: {{persona_goal}}. The Customer's messages should reflect their intent to accomplish this goal.",
             "scoring_hint": ""
           },
           {
             "rule_name": "complexity_appropriate",
             "rule_category": "Conversationality",
-            "rule_description": "The customer's behavior and communication should align with the expected complexity level: {{persona_complexity}}. This includes the depth of questions, technical understanding, and patience level.",
+            "rule_description": "The Customer's behavior and communication should align with the expected complexity level: {{persona_complexity}}. This includes the depth of questions, technical understanding, and patience level.",
             "scoring_hint": ""
           }
         ]
