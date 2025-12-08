@@ -24,57 +24,64 @@ pip install -r requirements.txt
 
 ## Configuration
 
-All settings are configured via environment variables with the `SA_` prefix.
-Configuration can be provided in two ways:
-
-1. **Environment file (`.env`)**: Copy `.env.example` to `.env` and fill in your values
-2. **Environment variables**: Set variables directly in your shell (overrides `.env` file)
+All settings are configured via a `config.json` file in the `transcript_downloader` directory.
 
 ### Quick Start
 
 ```bash
-# From repository root
-cp .env.example .env
+# Navigate to transcript_downloader directory
+cd transcript_downloader
 
-# Edit .env with your values
-nano .env
+# Copy the example config file
+cp config.json.example config.json
 
-# Run the script
+# Edit config.json with your values
+# "organization_url": "https://yourorg.crm.dynamics.com"
+# "tenant_id": "your-tenant-id-guid"
+# "workstream_id": "your-workstream-id-guid"
+# "max_conversations": 100
+
+# Run the script (from repository root)
+cd ..
 python download_transcripts.py
 ```
 
 ## Required Configuration
 
-The following settings are **required** and must be provided:
+The following fields are **required** in `config.json`:
 
-| Setting | Environment Variable | Description |
-|---------|---------------------|-------------|
-| Organization URL | `SA_ORGANIZATION_URL` | Your Dynamics 365 organization URL (e.g., `https://yourorg.crm.dynamics.com`) |
-| Tenant ID | `SA_TENANT_ID` | Your Azure AD tenant ID (GUID format) |
-| Workstream ID | `SA_WORKSTREAM_ID` | The workstream ID to fetch conversations from (GUID format) |
-| Max Conversations | `SA_MAX_CONVERSATIONS` | Maximum number of conversations to download (range: 1-1000) |
+| Field | Description |
+|-------|-------------|
+| `organization_url` | Your Dynamics 365 organization URL (e.g., `https://yourorg.crm.dynamics.com`) |
+| `tenant_id` | Your Azure AD tenant ID (GUID format) |
+| `workstream_id` | The workstream ID to fetch conversations from (GUID format) |
+| `max_conversations` | Maximum number of conversations to download (range: 1-1000) |
 
 ## Optional Configuration
 
-| Setting | Environment Variable | Default |
-|---------|---------------------|---------|
-| Access Token | `SA_ACCESS_TOKEN` | (none) - bypasses interactive login |
-| Login Hint | `SA_LOGIN_HINT` | (none) |
-| Days to Fetch | `SA_DAYS_TO_FETCH` | `7` |
-| Client ID | `SA_CLIENT_ID` | Power Platform first-party app |
-| Max Content Size | `SA_MAX_CONTENT_SIZE` | 52428800 (50MB) |
-| Token Cache Path | `SA_TOKEN_CACHE_PATH` | `.token_cache.json` |
+| Field | Default | Description |
+|-------|---------|-------------|
+| `access_token` | (empty) | Access token to bypass interactive login |
+| `login_hint` | (empty) | Email hint for authentication |
+| `days_to_fetch` | `7` | Number of days to look back |
+| `client_id` | `51f81489-12ee-4a9e-aaae-a2591f45987d` | Azure AD client ID |
+| `api_version` | `v9.2` | Dataverse API version |
+| `page_size` | `50` | Batch size for pagination |
+| `max_content_size` | `52428800` | Maximum base64 content size (50MB) |
+| `token_cache_path` | `.token_cache.json` | Path to token cache file |
+| `output_dir` | `transcript_downloader/output/` | Output directory for transcripts |
 
-## Example Usage
+## Example config.json
 
-Using environment variables:
-```bash
-export SA_ORGANIZATION_URL="https://yourorg.crm.dynamics.com"
-export SA_TENANT_ID="your-tenant-id-guid"
-export SA_WORKSTREAM_ID="your-workstream-id-guid"
-export SA_MAX_CONVERSATIONS=100
-export SA_LOGIN_HINT="user@yourdomain.com"
-python download_transcripts.py
+```json
+{
+  "organization_url": "https://yourorg.crm.dynamics.com",
+  "tenant_id": "12345678-1234-1234-1234-123456789012",
+  "workstream_id": "87654321-4321-4321-4321-210987654321",
+  "max_conversations": 100,
+  "login_hint": "user@yourdomain.com",
+  "days_to_fetch": 7
+}
 ```
 
 ## Authentication

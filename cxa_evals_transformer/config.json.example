@@ -1,0 +1,8 @@
+{
+  "input_dir": "conversation_generator/output/",
+  "output_file": "cxa_evals_transformer/cxa-evals/input/sa_multi_turn_conversations.json",
+  "scenario_name": "customer_support",
+  "task": "Customer Support",
+  "groundness_fact": "",
+  "cxa_evals_dir": "cxa_evals_transformer/cxa-evals/"
+}

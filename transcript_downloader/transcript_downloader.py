@@ -58,7 +58,7 @@ class TranscriptDownloader:
         
         # Create timestamp-based folder
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.output_folder = os.path.abspath(os.path.join("output", "transcripts", timestamp))
+        self.output_folder = os.path.abspath(os.path.join(config.OUTPUT_DIR, timestamp))
         self.days_to_fetch = days_to_fetch
         self.max_content_size = max_content_size
         self.max_conversations = max_conversations

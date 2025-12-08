@@ -30,47 +30,49 @@ pip install -r requirements.txt
 
 ## Configuration
 
-All settings are configured via environment variables with the `CG_` prefix.
-
-Configuration can be provided in two ways:
-
-1. **Environment file (`.env`)**: Copy `.env.example` to `.env` and fill in your values
-2. **Environment variables**: Set variables directly in your shell (overrides `.env` file)
+All settings are configured via a `config.json` file in the `conversation_generator` directory.
 
 ### Quick Start
 
 ```bash
-# From repository root
-cp .env.example .env
+# Navigate to conversation_generator directory
+cd conversation_generator
 
-# Edit .env and add your Azure OpenAI credentials
-# CG_AZURE_OPENAI_API_KEY=your-key-here
-# CG_AZURE_OPENAI_ENDPOINT=https://your-resource.cognitiveservices.azure.com/
+# Copy the example config file
+cp config.json.example config.json
 
-# Run the generator
+# Edit config.json with your Azure OpenAI credentials
+# "azure_openai_api_key": "your-key-here"
+# "azure_openai_endpoint": "https://your-resource.cognitiveservices.azure.com"
+
+# Run the generator (from repository root)
+cd ..
 python generate_conversations.py
 ```
 
 ## Required Configuration
 
-| Setting | Environment Variable | Description |
-|---------|---------------------|-------------|
-| Azure OpenAI API Key | `CG_AZURE_OPENAI_API_KEY` | Your Azure OpenAI API key (subscription key from https://ai.azure.com/) |
-| Azure OpenAI Endpoint | `CG_AZURE_OPENAI_ENDPOINT` | Your Azure OpenAI endpoint URL (e.g., https://your-resource.cognitiveservices.azure.com/) |
+The following fields are required in `config.json`:
+
+| Field | Description |
+|-------|-------------|
+| `azure_openai_api_key` | Your Azure OpenAI API key (subscription key from https://ai.azure.com/) |
+| `azure_openai_endpoint` | Your Azure OpenAI endpoint URL (e.g., https://your-resource.cognitiveservices.azure.com/) |
 
 ## Optional Configuration
 
-| Setting | Environment Variable | Default                 | Description |
-|---------|---------------------|-------------------------|-------------|
-| API Version | `CG_AZURE_OPENAI_API_VERSION` | `2024-02-01`            | Azure OpenAI API version |
-| Customer Deployment | `CG_CUSTOMER_DEPLOYMENT` | `gpt-4o-mini`           | Deployment name for customer agent |
-| CSR Deployment | `CG_CSR_DEPLOYMENT` | `gpt-4o-mini`           | Deployment name for CSR agent |
-| Max Turns | `CG_MAX_TURNS` | `20`                    | Maximum conversation turns |
-| Temperature | `CG_TEMPERATURE` | `0.7`                   | LLM temperature (0.0-2.0) |
-| Max Tokens | `CG_MAX_TOKENS` | `500`                   | Maximum tokens per response |
-| Num Conversations | `CG_NUM_CONVERSATIONS` | `10`                    | Number of conversations to generate |
-| Knowledge Base Path | `CG_KNOWLEDGE_BASE_PATH` | `data/knowledge_base/`  | Path to knowledge base files |
-| Output Directory | `CG_OUTPUT_DIR` | `output/conversations/` | Output directory for conversations |
+| Field | Default | Description |
+|-------|---------|-------------|
+| `azure_openai_api_version` | `2024-02-01` | Azure OpenAI API version |
+| `customer_deployment` | `gpt-4o-mini` | Deployment name for customer agent |
+| `csr_deployment` | `gpt-4o-mini` | Deployment name for CSR agent |
+| `max_turns` | `20` | Maximum conversation turns |
+| `temperature` | `0.7` | LLM temperature (0.0-2.0) |
+| `max_tokens` | `500` | Maximum tokens per response |
+| `num_conversations` | `10` | Number of conversations to generate |
+| `knowledge_base_path` | `conversation_generator/knowledge_base/` | Path to knowledge base files |
+| `output_dir` | `conversation_generator/output/` | Output directory for conversations |
+| `persona_templates_path` | `conversation_generator/personas.json` | Path to persona templates file |
 
 ## How It Works
 

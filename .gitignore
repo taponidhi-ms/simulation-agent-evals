@@ -245,8 +245,16 @@ http-client.private.env.json
 
 # Github Copilot persisted session migrations, see: https://github.com/microsoft/copilot-intellij-feedback/issues/712#issuecomment-3322062215
 .idea/**/copilot.data.migration.*.xml
-/output/
+
+# Module-specific output directories are handled by their own .gitignore files
+# conversation_generator/output/
+# transcript_downloader/output/
+# cxa_evals_transformer/cxa-evals/output/
+
+# Microsoft CXA Evals CLI executable
 /Microsoft.CXA.AIEvals.Cli.exe
 
-# Exclude cxa-evals directory but keep specific example files
-data/cxa-evals/output/*
+# Config files may contain sensitive data - users should copy from examples
+conversation_generator/config.json
+transcript_downloader/config.json
+cxa_evals_transformer/config.json
