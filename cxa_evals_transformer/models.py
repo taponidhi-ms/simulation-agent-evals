@@ -38,13 +38,10 @@ class CXAMessage:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format."""
-        result = {
+        return {
             "role": self.role,
             "content": self.content
         }
-        if self.tool_calls:
-            result["tool_calls"] = [tc.to_dict() for tc in self.tool_calls]
-        return result
 
 
 @dataclass
