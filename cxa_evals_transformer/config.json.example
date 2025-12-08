@@ -1,5 +1,5 @@
 {
-  "input_dir": "conversation_generator/output/",
+  "input_dir": "conversation_generator/output/20251208_160814/",
   "output_folder_prefix": "cxa_evals_output_",
   "output_file": "sa_multi_turn_conversations.json",
   "scenario_name": "customer_support",
