@@ -55,6 +55,11 @@ class CXAConversation:
     conversation: List[CXAMessage]
     groundness_fact: str = ""
     task: str = "Customer Support"
+    persona_name: str = ""
+    persona_description: str = ""
+    persona_goal: str = ""
+    persona_tone: str = ""
+    persona_complexity: str = ""
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary format."""
@@ -63,5 +68,10 @@ class CXAConversation:
             "scenario_name": self.scenario_name,
             "conversation": [msg.to_dict() for msg in self.conversation],
             "groundness_fact": self.groundness_fact,
-            "task": self.task
+            "task": self.task,
+            "persona_name": self.persona_name,
+            "persona_description": self.persona_description,
+            "persona_goal": self.persona_goal,
+            "persona_tone": self.persona_tone,
+            "persona_complexity": self.persona_complexity
         }
