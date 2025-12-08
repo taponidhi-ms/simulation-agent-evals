@@ -2,7 +2,7 @@
   "conversations": [
     {
       "Id": "conv1",
-      "scenario_name": "password_reset",
+      "scenario_name": "SimulationAgent",
       "conversation": [
         {
           "role": "system",
@@ -70,7 +70,12 @@
         }
       ],
       "groundness_fact": "Password reset steps : Go to the login page, click 'Forgot Password', and follow the prompts.",
-      "task": "Customer Support"
+      "task": "Customer Support",
+      "persona_name": "Account Access Problem",
+      "persona_description": "A customer who cannot access their account due to a forgotten password or locked account. They are worried about security and their personal data.",
+      "persona_goal": "Regain access to their account securely",
+      "persona_tone": "worried and cautious",
+      "persona_complexity": "medium"
     }
   ]
 }

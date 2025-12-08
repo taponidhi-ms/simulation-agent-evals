@@ -6,7 +6,12 @@
     "source_file_type": "json",
     "variable_columns": [
       "task",
-      "groundness_fact"
+      "groundness_fact",
+      "persona_name",
+      "persona_description",
+      "persona_goal",
+      "persona_tone",
+      "persona_complexity"
     ]
   },
   "eval_config": {
@@ -21,18 +26,24 @@
     "metric": "custom",
     "custom_rules": [
       {
-        "scenario_name": "password_reset",
+        "scenario_name": "SimulationAgent",
         "rules": [
           {
-            "rule_name": "tone",
+            "rule_name": "persona_adherence",
             "rule_category": "Conversationality",
-            "rule_description": "The assistant should maintain professional tone throughout the conversation.",
+            "rule_description": "The customer (user) should maintain consistency with their assigned persona throughout the conversation. The customer's persona is: {{persona_name}} - {{persona_description}}. The customer should communicate with the tone: {{persona_tone}}.",
             "scoring_hint": ""
           },
           {
-            "rule_name": "action_recommendation",
+            "rule_name": "goal_pursuit",
             "rule_category": "Usefulness",
-            "rule_description": "The assistant should accurately interpret the user's intent and provide a resolution that is factually correct and actionable. The resolution must be grounded in verified information : {{groundness_fact}}",
+            "rule_description": "The customer (user) should actively work towards achieving their goal: {{persona_goal}}. The customer's messages should reflect their intent to accomplish this goal.",
+            "scoring_hint": ""
+          },
+          {
+            "rule_name": "complexity_appropriate",
+            "rule_category": "Conversationality",
+            "rule_description": "The customer's behavior and communication should align with the expected complexity level: {{persona_complexity}}. This includes the depth of questions, technical understanding, and patience level.",
             "scoring_hint": ""
           }
         ]

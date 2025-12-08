@@ -19,7 +19,7 @@ class CXAEvalsTransformer:
     
     def __init__(
         self,
-        scenario_name: str = "customer_support",
+        scenario_name: str = "customer_support",  # Deprecated: scenario_name is always "SimulationAgent"
         task: str = "Customer Support",
         groundness_fact: str = ""
     ):
@@ -27,11 +27,12 @@ class CXAEvalsTransformer:
         Initialize the transformer.
         
         Args:
-            scenario_name: Default scenario name for conversations
+            scenario_name: DEPRECATED - This parameter is ignored. Scenario name is always "SimulationAgent".
             task: Task description for the agent
             groundness_fact: Default groundness fact for conversations
         """
-        self.scenario_name = scenario_name
+        # Note: scenario_name parameter is deprecated and ignored.
+        # All conversations use "SimulationAgent" as the scenario name.
         self.task = task
         self.groundness_fact = groundness_fact
         self._tool_call_counter = 0
@@ -168,6 +169,7 @@ class CXAEvalsTransformer:
         conv_id = conversation_data.get("conversation_id", "conv_unknown")
         messages = conversation_data.get("messages", [])
         persona = conversation_data.get("persona", "")
+        metadata = conversation_data.get("metadata", {})
         
         # Reset tool call counter for each conversation
         self._tool_call_counter = 0
@@ -188,13 +190,18 @@ class CXAEvalsTransformer:
             transformed = self._transform_message_to_cxa(msg, prev_msg)
             cxa_messages.extend(transformed)
         
-        # Create CXA conversation
+        # Create CXA conversation with persona metadata
         return CXAConversation(
             Id=conv_id,
-            scenario_name=self.scenario_name,
+            scenario_name="SimulationAgent",  # Always use "SimulationAgent" as scenario name
             conversation=cxa_messages,
             groundness_fact=self.groundness_fact,
-            task=self.task
+            task=self.task,
+            persona_name=persona,
+            persona_description=metadata.get("persona_description", ""),
+            persona_goal=metadata.get("persona_goal", ""),
+            persona_tone=metadata.get("persona_tone", ""),
+            persona_complexity=metadata.get("persona_complexity", "")
         )
     
     def transform_directory(

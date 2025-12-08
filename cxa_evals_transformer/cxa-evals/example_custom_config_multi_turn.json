@@ -21,7 +21,7 @@
     "metric": "custom",
     "custom_rules": [
       {
-        "scenario_name": "password_reset",
+        "scenario_name": "SimulationAgent",
         "rules": [
           {
             "rule_name": "tone",
