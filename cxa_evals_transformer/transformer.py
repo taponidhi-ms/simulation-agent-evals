@@ -7,7 +7,6 @@ module to the format expected by the CXA Evals framework.
 """
 
 import json
-import os
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
@@ -94,13 +93,13 @@ class CXAEvalsTransformer:
             messages = []
             
             if prev_msg and prev_msg.get("role") == "csr":
-                # Add tool response
+                # Add tool response with the previous CSR content
                 prev_content = prev_msg.get("content", "")
                 tool_call_id = f"call_{self._tool_call_counter:03d}"
                 
                 messages.append(CXAMessage(
                     role="tool",
-                    content=json.dumps({"message": content}),
+                    content=json.dumps({"message": prev_content}),
                     tool_calls=[ToolCall(
                         id=tool_call_id,
                         name="",

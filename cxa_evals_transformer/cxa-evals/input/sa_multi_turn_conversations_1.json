@@ -41,7 +41,7 @@
         {
           "role": "assistant",
           "content": "",
-          "tool_calls":[{
+          "tool_calls": [{
               "id": "call_003",
               "name": "_fetch_knowledge_article",
               "arguments": "{\"topic\": \"password reset\", \"message\": \"Here's what you need to do: Go to the login page, click 'Forgot Password', and follow the prompts.\"}"
@@ -51,7 +51,7 @@
         {
           "role": "tool",
           "content": "{\"message\": \"Thanks! I'll try that now.\"}",
-          "tool_calls":[ {
+          "tool_calls": [{
               "type": "tool_call_id",
               "id": "call_003"
             }
