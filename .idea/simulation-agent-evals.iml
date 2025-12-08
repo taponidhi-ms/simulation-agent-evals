@@ -6,6 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/historical_transcripts" />
       <excludeFolder url="file://$MODULE_DIR$/output" />
       <excludeFolder url="file://$MODULE_DIR$/transcripts_output" />
+      <excludeFolder url="file://$MODULE_DIR$/data/cxa-evals/output" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.13 (simulation-agent-evals) (2)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

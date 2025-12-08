@@ -2,7 +2,7 @@
   "team_name": "Omnichannel",
   "agent_name": "SimulationAgent",
   "source": {
-    "source_folder_path": ".\\data\\cxa-evals\\input\\example_multi_turn_conversations.json",
+    "source_folder_path": ".\\data\\cxa-evals\\input\\sa_multi_turn_conversations.json",
     "source_file_type": "json",
     "variable_columns": [
       "task",
