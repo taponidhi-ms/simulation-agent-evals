@@ -58,6 +58,7 @@ _config = load_config()
 
 # Export config values as module-level variables
 INPUT_DIR = _config.input_dir
+OUTPUT_FOLDER_PREFIX = _config.output_folder_prefix
 OUTPUT_FILE = _config.output_file
 SCENARIO_NAME = _config.scenario_name
 TASK = _config.task

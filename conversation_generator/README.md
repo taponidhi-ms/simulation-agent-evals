@@ -2,6 +2,38 @@
 
 Generates synthetic conversations between a customer agent and a CSR (Customer Service Representative) agent using LLMs. This tool creates realistic conversation datasets for testing and evaluating the SimulationAgent feature.
 
+## Flow Diagram
+
+```mermaid
+flowchart TD
+    A[Start: generate_conversations.py] --> B[Load Configuration<br/>config.json]
+    B --> C[Initialize Azure OpenAI Client]
+    C --> D[Load Knowledge Base<br/>FAQs & Policies]
+    D --> E[Load Persona Templates<br/>personas.json]
+    E --> F[Create Timestamped Output Directory<br/>output/YYYYMMDD_HHMMSS/]
+    F --> G{For Each Persona}
+    G --> H[Create Customer Agent<br/>with Persona]
+    H --> I[Create CSR Agent<br/>with Knowledge Base]
+    I --> J[Initialize Orchestrator]
+    J --> K[Run Conversation Loop]
+    K --> L{Conversation<br/>Complete?}
+    L -->|Max Turns| M[Save Conversation JSON]
+    L -->|Resolved| M
+    L -->|Escalated| M
+    L -->|Continue| N[Customer Turn]
+    N --> O[CSR Turn]
+    O --> L
+    M --> P{More<br/>Conversations?}
+    P -->|Yes| G
+    P -->|No| Q[Save Metadata JSON]
+    Q --> R[End: Conversations Saved]
+    
+    style A fill:#e1f5e1
+    style R fill:#e1f5e1
+    style F fill:#fff4e1
+    style M fill:#fff4e1
+```
+
 ## Overview
 
 The conversation generator uses a **Two-LLM Framework**:

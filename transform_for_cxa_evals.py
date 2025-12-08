@@ -16,6 +16,7 @@ Configuration:
 
 import sys
 from pathlib import Path
+from datetime import datetime
 
 from cxa_evals_transformer import config
 from cxa_evals_transformer.transformer import CXAEvalsTransformer
@@ -34,8 +35,18 @@ def main() -> int:
     print()
     
     try:
+        # Create timestamped output directory
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        base_output_dir = Path(__file__).parent / "cxa_evals_transformer" / "output"
+        output_dir = base_output_dir / f"{config.OUTPUT_FOLDER_PREFIX}{timestamp}"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create full output file path
+        output_file = output_dir / config.OUTPUT_FILE
+        
         print(f"Input directory: {config.INPUT_DIR}")
-        print(f"Output file: {config.OUTPUT_FILE}")
+        print(f"Output directory: {output_dir}")
+        print(f"Output file: {output_file}")
         print(f"Scenario name: {config.SCENARIO_NAME}")
         print(f"Task: {config.TASK}")
         print()
@@ -54,7 +65,7 @@ def main() -> int:
         # Transform conversations
         num_transformed = transformer.transform_directory(
             input_dir=config.INPUT_DIR,
-            output_file=config.OUTPUT_FILE
+            output_file=str(output_file)
         )
         
         print()
@@ -62,7 +73,7 @@ def main() -> int:
         print("Summary")
         print("=" * 70)
         print(f"Conversations transformed: {num_transformed}")
-        print(f"Output saved to: {config.OUTPUT_FILE}")
+        print(f"Output saved to: {output_file}")
         print()
         
         return 0
