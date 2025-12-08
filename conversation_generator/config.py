@@ -45,7 +45,7 @@ NUM_CONVERSATIONS = int(os.getenv("CG_NUM_CONVERSATIONS", "10"))
 # =============================================================================
 
 # Path to knowledge base directory or file
-KNOWLEDGE_BASE_PATH = os.getenv("CG_KNOWLEDGE_BASE_PATH", "knowledge_base/")
+KNOWLEDGE_BASE_PATH = os.getenv("CG_KNOWLEDGE_BASE_PATH", "data/knowledge_base/")
 
 # =============================================================================
 # Output Configuration

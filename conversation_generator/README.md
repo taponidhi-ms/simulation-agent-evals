@@ -60,16 +60,16 @@ python generate_conversations.py
 
 ## Optional Configuration
 
-| Setting | Environment Variable | Default | Description |
-|---------|---------------------|---------|-------------|
-| API Version | `CG_AZURE_OPENAI_API_VERSION` | `2024-02-01` | Azure OpenAI API version |
-| Customer Deployment | `CG_CUSTOMER_DEPLOYMENT` | `gpt-4o-mini` | Deployment name for customer agent |
-| CSR Deployment | `CG_CSR_DEPLOYMENT` | `gpt-4o-mini` | Deployment name for CSR agent |
-| Max Turns | `CG_MAX_TURNS` | `20` | Maximum conversation turns |
-| Temperature | `CG_TEMPERATURE` | `0.7` | LLM temperature (0.0-2.0) |
-| Max Tokens | `CG_MAX_TOKENS` | `500` | Maximum tokens per response |
-| Num Conversations | `CG_NUM_CONVERSATIONS` | `10` | Number of conversations to generate |
-| Knowledge Base Path | `CG_KNOWLEDGE_BASE_PATH` | `knowledge_base/` | Path to knowledge base files |
+| Setting | Environment Variable | Default                 | Description |
+|---------|---------------------|-------------------------|-------------|
+| API Version | `CG_AZURE_OPENAI_API_VERSION` | `2024-02-01`            | Azure OpenAI API version |
+| Customer Deployment | `CG_CUSTOMER_DEPLOYMENT` | `gpt-4o-mini`           | Deployment name for customer agent |
+| CSR Deployment | `CG_CSR_DEPLOYMENT` | `gpt-4o-mini`           | Deployment name for CSR agent |
+| Max Turns | `CG_MAX_TURNS` | `20`                    | Maximum conversation turns |
+| Temperature | `CG_TEMPERATURE` | `0.7`                   | LLM temperature (0.0-2.0) |
+| Max Tokens | `CG_MAX_TOKENS` | `500`                   | Maximum tokens per response |
+| Num Conversations | `CG_NUM_CONVERSATIONS` | `10`                    | Number of conversations to generate |
+| Knowledge Base Path | `CG_KNOWLEDGE_BASE_PATH` | `data/knowledge_base/`  | Path to knowledge base files |
 | Output Directory | `CG_OUTPUT_DIR` | `output/conversations/` | Output directory for conversations |
 
 ## How It Works
