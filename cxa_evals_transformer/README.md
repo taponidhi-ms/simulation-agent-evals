@@ -11,7 +11,8 @@ The CXA Evals Transformer bridges the gap between the `conversation_generator` m
 - ✅ Transforms conversation generator output to CXA Evals format
 - ✅ Supports multi-turn conversation structure
 - ✅ Maps customer/CSR roles to CXA tool call format
-- ✅ Configurable scenario names and task descriptions
+- ✅ Preserves persona metadata for customer evaluation
+- ✅ Fixed scenario name "SimulationAgent" for consistency
 - ✅ Batch processing of multiple conversations
 
 ## Configuration
@@ -30,7 +31,7 @@ cp config.json.example config.json
 |-------|------|----------|-------------|
 | `input_dir` | string | Yes | Directory containing conversation generator output files |
 | `output_file` | string | Yes | Output file path for transformed CXA Evals conversations |
-| `scenario_name` | string | No | Default scenario name for conversations (default: "customer_support") |
+| `scenario_name` | string | No | **DEPRECATED** - Ignored. All conversations use "SimulationAgent" |
 | `task` | string | No | Task description for the agent (default: "Customer Support") |
 | `groundness_fact` | string | No | Default groundness fact for conversations (default: "") |
 | `cxa_evals_dir` | string | No | Directory for CXA Evals related files (default: "cxa_evals_transformer/cxa-evals/") |
@@ -78,7 +79,7 @@ The transformer creates a JSON file in the CXA Evals format:
   "conversations": [
     {
       "Id": "conv1",
-      "scenario_name": "customer_support",
+      "scenario_name": "SimulationAgent",
       "conversation": [
         {
           "role": "system",
@@ -103,11 +104,18 @@ The transformer creates a JSON file in the CXA Evals format:
         }
       ],
       "groundness_fact": "Knowledge base contains FAQ for customer support.",
-      "task": "Customer Support"
+      "task": "Customer Support",
+      "persona_name": "Account Access Problem",
+      "persona_description": "A customer who cannot access their account...",
+      "persona_goal": "Regain access to their account securely",
+      "persona_tone": "worried and cautious",
+      "persona_complexity": "medium"
     }
   ]
 }
 ```
+
+**Note**: All conversations use `"scenario_name": "SimulationAgent"` regardless of configuration.
 
 ## Transformation Details
 
@@ -201,15 +209,9 @@ cp config.json.example config.json
 
 ## Advanced Usage
 
-### Custom Scenario Names
+### Scenario Name
 
-Update `scenario_name` in config.json to categorize conversations:
-
-```json
-{
-  "scenario_name": "password_reset"
-}
-```
+**Note**: As of the latest version, all conversations use `"scenario_name": "SimulationAgent"` by default. The `scenario_name` configuration parameter is deprecated and ignored. This ensures consistency across all CXA Evals evaluations.
 
 ### Groundness Facts
 
