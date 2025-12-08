@@ -32,7 +32,7 @@ flowchart TD
     
     subgraph Transform Details
         K --> K1[System → System Message]
-        K --> K2[CSR → Assistant + tool_calls]
+        K --> K2[CSR → Assistant Message]
         K --> K3[Customer → User Message]
     end
 ```
@@ -47,7 +47,7 @@ The CXA Evals Transformer bridges the gap between the `conversation_generator` m
 
 - ✅ Transforms conversation generator output to CXA Evals format
 - ✅ Supports multi-turn conversation structure
-- ✅ Maps customer/CSR roles to CXA tool call format
+- ✅ Maps customer/CSR roles to CXA message format (role and content only)
 - ✅ Preserves persona metadata for customer evaluation
 - ✅ Fixed scenario name "SimulationAgent" for consistency
 - ✅ Batch processing of multiple conversations
@@ -126,24 +126,15 @@ The transformer creates a JSON file in the CXA Evals format:
       "conversation": [
         {
           "role": "system",
-          "content": "Instructions: You are a {{Customer Support}} agent...",
-          "tool_calls": []
+          "content": "Instructions: You are a {{Customer Support}} agent..."
         },
         {
           "role": "assistant",
-          "content": "",
-          "tool_calls": [
-            {
-              "id": "call_001",
-              "name": "_ask_question",
-              "arguments": "{\"message\": \"Hello! How can I help you today?\"}"
-            }
-          ]
+          "content": "Hello! How can I help you today?"
         },
         {
           "role": "user",
-          "content": "I need help with my account",
-          "tool_calls": []
+          "content": "I need help with my account"
         }
       ],
       "groundness_fact": "Knowledge base contains FAQ for customer support.",
@@ -167,20 +158,8 @@ The transformer creates a JSON file in the CXA Evals format:
 | Generator Role | CXA Evals Format |
 |----------------|------------------|
 | `system` | `system` message with task instructions |
-| `csr` | `assistant` message with tool_calls |
+| `csr` | `assistant` message with content |
 | `customer` | `user` message |
-
-### Tool Call Mapping
-
-The transformer automatically maps CSR messages to appropriate tool calls:
-
-| Content Pattern | Tool Name |
-|----------------|-----------|
-| First CSR message | `_ask_question` |
-| Closing phrases | `_close_conversation` |
-| Knowledge-based responses | `_fetch_knowledge_article` |
-| Intent identification | `_identify_new_intent` |
-| Default | `_ask_question` |
 
 ## Integration with CXA Evals
 

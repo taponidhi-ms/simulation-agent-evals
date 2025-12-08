@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 
-from .models import CXAConversation, CXAMessage, ToolCall
+from .models import CXAConversation, CXAMessage
 
 
 class CXAEvalsTransformer:
@@ -35,12 +35,6 @@ class CXAEvalsTransformer:
         # All conversations use "SimulationAgent" as the scenario name.
         self.task = task
         self.groundness_fact = groundness_fact
-        self._tool_call_counter = 0
-    
-    def _get_next_tool_call_id(self) -> str:
-        """Generate next tool call ID."""
-        self._tool_call_counter += 1
-        return f"call_{self._tool_call_counter:03d}"
     
     def _transform_message_to_cxa(
         self,
@@ -50,16 +44,15 @@ class CXAEvalsTransformer:
         """
         Transform a single conversation generator message to CXA format.
         
-        The CXA Evals format uses tool calls to represent agent actions.
-        Each CSR message becomes an assistant message with tool_calls.
-        Customer messages become user messages.
+        Each message is converted to a CXA message with role and content only.
+        CSR messages become assistant messages, customer messages become user messages.
         
         Args:
             msg: Message from conversation generator
-            prev_msg: Previous message for context
+            prev_msg: Previous message for context (currently unused)
             
         Returns:
-            List of CXAMessage objects (may be multiple for complex interactions)
+            List of CXAMessage objects (typically one message per input)
         """
         role = msg.get("role", "")
         content = msg.get("content", "")
@@ -68,93 +61,24 @@ class CXAEvalsTransformer:
             # System message at the start
             return [CXAMessage(
                 role="system",
-                content=f"Instructions: You are a {{{{{self.task}}}}} agent. Follow business knowledge and ground responses in provided sources.",
-                tool_calls=[]
+                content=f"Instructions: You are a {{{{{self.task}}}}} agent. Follow business knowledge and ground responses in provided sources."
             )]
         
         elif role == "csr":
-            # CSR messages become assistant messages with tool calls
-            # Map the CSR action to appropriate tool call
-            tool_name = self._determine_tool_name(content, prev_msg)
-            tool_call = ToolCall(
-                id=self._get_next_tool_call_id(),
-                name=tool_name,
-                arguments=json.dumps({"message": content})
-            )
-            
+            # CSR messages become assistant messages
             return [CXAMessage(
                 role="assistant",
-                content="",
-                tool_calls=[tool_call]
+                content=content
             )]
         
         elif role == "customer":
             # Customer messages become user messages
-            # If previous message was a CSR action, add a tool response first
-            messages = []
-            
-            if prev_msg and prev_msg.get("role") == "csr":
-                # Add tool response with the previous CSR content
-                prev_content = prev_msg.get("content", "")
-                tool_call_id = f"call_{self._tool_call_counter:03d}"
-                
-                messages.append(CXAMessage(
-                    role="tool",
-                    content=json.dumps({"message": prev_content}),
-                    tool_calls=[ToolCall(
-                        id=tool_call_id,
-                        name="",
-                        arguments="",
-                        type="tool_call_id"
-                    )]
-                ))
-            
-            # Add user message
-            messages.append(CXAMessage(
+            return [CXAMessage(
                 role="user",
-                content=content,
-                tool_calls=[]
-            ))
-            
-            return messages
+                content=content
+            )]
         
         return []
-    
-    def _determine_tool_name(self, content: str, prev_msg: Optional[Dict[str, Any]]) -> str:
-        """
-        Determine the appropriate tool name based on message content.
-        
-        Args:
-            content: Message content
-            prev_msg: Previous message for context
-            
-        Returns:
-            Tool name string
-        """
-        content_lower = content.lower()
-        
-        # Analyze content to determine tool type
-        if prev_msg is None:
-            # First message from CSR is typically a greeting
-            return "_ask_question"
-        
-        # Check for closing phrases
-        closing_phrases = ["thank you", "have a great day", "glad i could help", "you're welcome"]
-        if any(phrase in content_lower for phrase in closing_phrases):
-            return "_close_conversation"
-        
-        # Check for knowledge-based responses
-        knowledge_indicators = ["here's what", "you need to", "the process is", "according to"]
-        if any(indicator in content_lower for indicator in knowledge_indicators):
-            return "_fetch_knowledge_article"
-        
-        # Check for intent identification
-        intent_indicators = ["i understand", "let me help", "i see that"]
-        if any(indicator in content_lower for indicator in intent_indicators):
-            return "_identify_new_intent"
-        
-        # Default to asking a question
-        return "_ask_question"
     
     def transform_conversation(self, conversation_data: Dict[str, Any]) -> CXAConversation:
         """
@@ -171,17 +95,13 @@ class CXAEvalsTransformer:
         persona = conversation_data.get("persona", "")
         metadata = conversation_data.get("metadata", {})
         
-        # Reset tool call counter for each conversation
-        self._tool_call_counter = 0
-        
         # Transform messages
         cxa_messages: List[CXAMessage] = []
         
         # Add system message first
         cxa_messages.append(CXAMessage(
             role="system",
-            content=f"Instructions: You are a {{{{{self.task}}}}} agent. Follow business knowledge and ground responses in provided sources.",
-            tool_calls=[]
+            content=f"Instructions: You are a {{{{{self.task}}}}} agent. Follow business knowledge and ground responses in provided sources."
         ))
         
         # Transform conversation messages
