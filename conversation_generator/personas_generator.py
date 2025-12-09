@@ -216,26 +216,19 @@ def transform_personas_to_cxa(personas_data: Dict[str, Any], prompt: str) -> Dic
         prompt: The original prompt used to generate personas
         
     Returns:
-        Dictionary in CXA Evals format
+        Dictionary in CXA Evals format for single-turn evaluation
     """
     conversations = []
     
-    # Create a single-turn conversation for persona generation evaluation
-    # The "user" (prompt) asks for personas, the "agent" (system) generates them
+    # Create a single-turn conversation entry for persona generation evaluation
+    # This follows the CXA Evals single-turn format with agent_prompt and agent_response
     conversation_entry = {
         "Id": "persona_generation_eval",
+        "agent_prompt": prompt,
+        "agent_response": json.dumps(personas_data, indent=2),
         "scenario_name": "PersonaGenerator",
-        "conversation": [
-            {
-                "role": "user",
-                "content": prompt
-            },
-            {
-                "role": "assistant",
-                "content": json.dumps(personas_data, indent=2)
-            }
-        ],
-        "persona_prompt": prompt
+        "persona_prompt": prompt,
+        "num_personas_requested": len(personas_data.get("personas", []))
     }
     
     conversations.append(conversation_entry)
