@@ -66,7 +66,6 @@ CSR_DEPLOYMENT = _config.csr_deployment
 MAX_TURNS = _config.max_turns
 TEMPERATURE = _config.temperature
 MAX_TOKENS = _config.max_tokens
-NUM_CONVERSATIONS = _config.num_conversations
 KNOWLEDGE_BASE_PATH = _config.knowledge_base_path
 OUTPUT_DIR = _config.output_dir
 PERSONA_TEMPLATES_PATH = _config.persona_templates_path

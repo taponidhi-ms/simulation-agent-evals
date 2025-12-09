@@ -1,17 +1,11 @@
 {
   "team_name": "Omnichannel",
-  "agent_name": "SimulationAgent",
+  "agent_name": "PersonaGenerator",
   "source": {
-    "source_folder_path": ".\\cxa_evals_transformer\\output\\cxa_evals_output_20251208_182511\\sa_multi_turn_conversations.json",
+    "source_folder_path": "cxa_evals_personas.json",
     "source_file_type": "json",
     "variable_columns": [
-      "task",
-      "groundness_fact",
-      "persona_name",
-      "persona_description",
-      "persona_goal",
-      "persona_tone",
-      "persona_complexity"
+      "persona_prompt"
     ]
   },
   "eval_config": {
@@ -19,31 +13,31 @@
       "enable_logging",
       "dev"
     ],
-    "turn_mode": "multi_turn",
+    "turn_mode": "single_turn",
     "lower_bound_score": 1,
     "upper_bound_score": 10,
     "score_threshold": 7,
     "metric": "custom",
     "custom_rules": [
       {
-        "scenario_name": "SimulationAgent",
+        "scenario_name": "PersonaGenerator",
         "rules": [
           {
-            "rule_name": "persona_adherence",
-            "rule_category": "Conversationality",
-            "rule_description": "The Customer should maintain consistency with their assigned persona throughout the conversation. The Customer's persona is: {{persona_name}} - {{persona_description}}. The Customer should communicate with the tone: {{persona_tone}}.",
+            "rule_name": "persona_diversity",
+            "rule_category": "Content",
+            "rule_description": "Agent response must generate diverse personas with varying tones, goals, and complexity levels based on the prompt: {{persona_prompt}}",
             "scoring_hint": ""
           },
           {
-            "rule_name": "goal_pursuit",
-            "rule_category": "Usefulness",
-            "rule_description": "The Customer should actively work towards achieving their goal: {{persona_goal}}. The Customer's messages should reflect their intent to accomplish this goal.",
+            "rule_name": "persona_completeness",
+            "rule_category": "Completeness",
+            "rule_description": "Agent response must include all required persona fields: name, description, goal, tone, and complexity for each persona",
             "scoring_hint": ""
           },
           {
-            "rule_name": "complexity_appropriate",
-            "rule_category": "Conversationality",
-            "rule_description": "The Customer's behavior and communication should align with the expected complexity level: {{persona_complexity}}. This includes the depth of questions, technical understanding, and patience level.",
+            "rule_name": "persona_relevance",
+            "rule_category": "Relevance",
+            "rule_description": "Generated personas must be relevant to the scenario described in the prompt: {{persona_prompt}}",
             "scoring_hint": ""
           }
         ]
@@ -82,7 +76,7 @@
   },
   "sink": {
     "type": "LocalFileWriter",
-    "output_folder_path": ".\\cxa_evals_transformer\\cxa-evals\\output\\"
+    "output_folder_path": "./cxa-evals-output/"
   },
   "reporting": {
     "enabled": false,
