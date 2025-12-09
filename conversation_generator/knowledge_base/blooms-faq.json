@@ -1,0 +1,125 @@
+{
+  "_note": "This is TEST DATA ONLY. All pricing, policies, company names, and specific details are fictional examples for testing and demonstration purposes. Update with actual business information before production use.",
+  "items": [
+    {
+      "category": "delivery",
+      "question": "What are your delivery options for flowers?",
+      "answer": "We offer same-day delivery for orders placed before 2 PM in most areas, next-day delivery, and scheduled delivery for future dates. Delivery fees vary by location and speed. Same-day delivery costs $14.99, next-day is $9.99, and scheduled delivery is $7.99.",
+      "tags": ["delivery", "shipping", "options"]
+    },
+    {
+      "category": "delivery",
+      "question": "Can I specify a delivery time?",
+      "answer": "We cannot guarantee specific delivery times, but we offer delivery windows: morning (9 AM - 12 PM), afternoon (12 PM - 5 PM), or evening (5 PM - 8 PM). The recipient will receive a notification when the driver is nearby.",
+      "tags": ["delivery", "time", "schedule"]
+    },
+    {
+      "category": "delivery",
+      "question": "What if no one is home to receive the flowers?",
+      "answer": "Our drivers will attempt delivery and leave a door tag with instructions. For perishable items like flowers, we may leave them in a safe location if weather permits. We'll also call the recipient. If delivery fails, we'll attempt redelivery the next business day at no extra charge.",
+      "tags": ["delivery", "missed delivery", "redelivery"]
+    },
+    {
+      "category": "freshness",
+      "question": "How long will the flowers stay fresh?",
+      "answer": "With proper care, most arrangements last 5-7 days. Some flowers like orchids and carnations can last 2-3 weeks. We include care instructions with every order. Keep flowers in a cool place, change water daily, and trim stems every few days.",
+      "tags": ["freshness", "care", "longevity"]
+    },
+    {
+      "category": "freshness",
+      "question": "What if my flowers arrive wilted or damaged?",
+      "answer": "We guarantee 100% freshness. If flowers arrive wilted, damaged, or don't meet your expectations, contact us within 24 hours with photos. We'll send a replacement arrangement at no charge or issue a full refund.",
+      "tags": ["freshness", "quality", "guarantee", "refund"]
+    },
+    {
+      "category": "occasions",
+      "question": "Do you have arrangements for specific occasions?",
+      "answer": "Yes! We have curated collections for birthdays, anniversaries, sympathy, get well, congratulations, Mother's Day, Valentine's Day, and other special occasions. Each arrangement is designed to match the sentiment of the occasion.",
+      "tags": ["occasions", "events", "collections"]
+    },
+    {
+      "category": "customization",
+      "question": "Can I customize a flower arrangement?",
+      "answer": "Many arrangements can be customized. You can add extras like chocolates, balloons, or stuffed animals for $9.99-$29.99. For significant changes to the arrangement itself, contact our design team at least 24 hours before delivery.",
+      "tags": ["customization", "add-ons", "personalization"]
+    },
+    {
+      "category": "customization",
+      "question": "Can I include a personalized message?",
+      "answer": "Absolutely! During checkout, you can add a complimentary personalized message card (up to 200 characters). The message will be printed on a keepsake card and included with your arrangement.",
+      "tags": ["customization", "message", "card"]
+    },
+    {
+      "category": "ordering",
+      "question": "How do I know my order was received?",
+      "answer": "You'll receive an order confirmation email immediately after purchase with your order number and details. You'll also get updates when your order is being prepared, when it's out for delivery, and when it's been delivered.",
+      "tags": ["ordering", "confirmation", "tracking"]
+    },
+    {
+      "category": "ordering",
+      "question": "Can I change or cancel my order?",
+      "answer": "Orders can be modified or cancelled up until they enter production. For same-day orders, contact us within 1 hour of placing the order. For future-dated orders, changes can be made up to 24 hours before delivery. Call us at 1-800-BLOOMS or use the 'Modify Order' option in your account.",
+      "tags": ["ordering", "cancel", "modify"]
+    },
+    {
+      "category": "subscriptions",
+      "question": "Do you offer flower subscription services?",
+      "answer": "Yes! Our Blooms Club subscription delivers fresh flowers weekly, bi-weekly, or monthly. Plans start at $39.99/month. Subscribers get 15% off all orders, free delivery, and can skip or modify any delivery. Cancel anytime with no fees.",
+      "tags": ["subscriptions", "recurring", "membership"]
+    },
+    {
+      "category": "pricing",
+      "question": "Why do prices vary for the same arrangement?",
+      "answer": "Prices can vary based on delivery location, size of the arrangement (standard, deluxe, or premium), and seasonal availability of flowers. We're transparent about all options during checkout so you can choose what fits your budget.",
+      "tags": ["pricing", "variations", "sizes"]
+    },
+    {
+      "category": "seasonal",
+      "question": "What flowers are available year-round?",
+      "answer": "Roses, carnations, lilies, and alstroemeria are available year-round. Seasonal flowers like peonies, tulips, and sunflowers have limited availability. Check our website or call for current availability of specific flower types.",
+      "tags": ["seasonal", "availability", "flowers"]
+    },
+    {
+      "category": "care",
+      "question": "How do I make my flowers last longer?",
+      "answer": "Keep flowers in fresh, cool water and change the water every 1-2 days. Trim stems at an angle every few days. Keep arrangements away from direct sunlight, heat sources, and ripening fruit. Use the flower food packet we provide with every order.",
+      "tags": ["care", "maintenance", "tips"]
+    },
+    {
+      "category": "corporate",
+      "question": "Do you handle corporate or bulk orders?",
+      "answer": "Yes! We have a dedicated corporate services team for bulk orders, office arrangements, and event flowers. Contact our corporate team at corporate@blooms.com or 1-800-BLOOMS-BIZ for custom quotes and volume discounts.",
+      "tags": ["corporate", "bulk", "business"]
+    },
+    {
+      "category": "international",
+      "question": "Can you deliver flowers internationally?",
+      "answer": "We currently deliver within the continental United States and select regions in Canada. For international delivery, we partner with local florists in over 150 countries through our global network. International orders require 2-3 business days' notice.",
+      "tags": ["international", "delivery", "global"]
+    },
+    {
+      "category": "allergies",
+      "question": "Do you have arrangements for people with allergies?",
+      "answer": "Yes! We offer hypoallergenic arrangements featuring flowers with minimal pollen like orchids, roses, and hydrangeas. Filter by 'Allergy-Friendly' on our website or mention allergies when ordering by phone.",
+      "tags": ["allergies", "hypoallergenic", "pollen-free"]
+    },
+    {
+      "category": "sympathy",
+      "question": "How do I send sympathy flowers?",
+      "answer": "Our sympathy collection includes tasteful arrangements appropriate for homes, funeral services, or memorials. We can deliver to funeral homes or residences. Include the service date and location, and we'll coordinate timing. White lilies, roses, and peaceful pastels are traditional choices.",
+      "tags": ["sympathy", "funeral", "memorial"]
+    },
+    {
+      "category": "payment",
+      "question": "What payment methods do you accept?",
+      "answer": "We accept all major credit cards (Visa, Mastercard, American Express, Discover), PayPal, Apple Pay, and Google Pay. For corporate accounts, we offer net-30 payment terms after credit approval.",
+      "tags": ["payment", "billing", "methods"]
+    },
+    {
+      "category": "rewards",
+      "question": "Do you have a rewards or loyalty program?",
+      "answer": "Yes! Join Blooms Rewards for free. Earn 1 point per dollar spent. Every 100 points = $5 off future orders. Members get early access to sales, birthday discounts, and exclusive seasonal offers. Sign up at checkout or in your account settings.",
+      "tags": ["rewards", "loyalty", "points"]
+    }
+  ]
+}

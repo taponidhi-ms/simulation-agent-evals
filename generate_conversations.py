@@ -28,6 +28,10 @@ from conversation_generator.agents import LLMClient, CustomerAgent, CSRAgent
 from conversation_generator.orchestrator import ConversationOrchestrator
 
 
+# Constants
+GENERATED_PERSONAS_PREFIX = "personas_"  # Prefix for generated personas folders
+
+
 def load_personas(persona_file: str) -> List[PersonaTemplate]:
     """
     Load persona templates from JSON file.
@@ -136,9 +140,28 @@ def main() -> int:
             enable_escalation=True
         )
         
-        # Create output directory
+        # Determine output directory
+        # If personas are from a generated personas folder (e.g., personas_20251209_140611),
+        # save conversations inside that folder as conversations_{timestamp}
+        # Otherwise, use the default output directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_dir = Path(config.OUTPUT_DIR) / timestamp
+        persona_path = Path(config.PERSONA_TEMPLATES_PATH).resolve()
+        
+        # Search for a directory in the path hierarchy that starts with GENERATED_PERSONAS_PREFIX
+        # This handles both direct parent and nested scenarios
+        personas_folder = None
+        for parent in persona_path.parents:
+            if parent.name.startswith(GENERATED_PERSONAS_PREFIX):
+                personas_folder = parent
+                break
+        
+        if personas_folder:
+            # Save conversations inside the generated personas folder
+            output_dir = personas_folder / f"conversations_{timestamp}"
+        else:
+            # Use default output directory (old behavior for examples folder)
+            output_dir = Path(config.OUTPUT_DIR) / timestamp
+        
         output_dir.mkdir(parents=True, exist_ok=True)
         
         print("-" * 50)

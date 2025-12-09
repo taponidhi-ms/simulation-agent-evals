@@ -162,19 +162,24 @@ def save_personas(
         
     Returns:
         Path to the saved personas.json file
+        
+    Raises:
+        ValueError: If personas_data is missing required structure
     """
+    # Validate input structure
+    if "personas" not in personas_data:
+        raise ValueError("personas_data must contain 'personas' key")
+    
+    if not isinstance(personas_data["personas"], list):
+        raise ValueError("'personas' must be a list")
+    
     # Create timestamped directory
     now = datetime.now()
     timestamp = now.strftime("%Y%m%d_%H%M%S")
     personas_dir = output_dir / f"personas_{timestamp}"
     personas_dir.mkdir(parents=True, exist_ok=True)
     
-    # Save personas.json
-    personas_file = personas_dir / "personas.json"
-    with open(personas_file, 'w', encoding='utf-8') as f:
-        json.dump(personas_data, f, indent=2, ensure_ascii=False)
-    
-    # Save metadata including the original prompt
+    # Prepare metadata including the original prompt
     # We include both timestamp formats:
     # - generated_at: ISO 8601 format for precise sorting and parsing
     # - timestamp: Compact format matching the directory name for easy reference
@@ -185,6 +190,16 @@ def save_personas(
         "num_personas": len(personas_data.get("personas", []))
     }
     
+    # Save personas.json with embedded metadata
+    personas_with_metadata = {
+        "personas": personas_data.get("personas", []),
+        "_metadata": metadata
+    }
+    personas_file = personas_dir / "personas.json"
+    with open(personas_file, 'w', encoding='utf-8') as f:
+        json.dump(personas_with_metadata, f, indent=2, ensure_ascii=False)
+    
+    # Also save separate _metadata.json for backward compatibility
     metadata_file = personas_dir / "_metadata.json"
     with open(metadata_file, 'w', encoding='utf-8') as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)

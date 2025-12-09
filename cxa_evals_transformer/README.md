@@ -66,7 +66,7 @@ cp config.json.example config.json
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `input_dir` | string | Yes | Directory containing conversation generator output files |
+| `input_dir` | string | Yes | Directory containing conversation generator output files. Can be either `conversation_generator/output/YYYYMMDD_HHMMSS/` for example personas, or `conversation_generator/personas/personas_YYYYMMDD_HHMMSS/conversations_YYYYMMDD_HHMMSS/` for generated personas |
 | `output_folder_prefix` | string | No | Prefix for timestamped output folders (default: "cxa_evals_output_") |
 | `output_file` | string | No | Output filename for transformed conversations (default: "sa_multi_turn_conversations.json") |
 | `scenario_name` | string | No | **DEPRECATED** - Ignored. All conversations use "SimulationAgent" |
@@ -76,6 +76,20 @@ cp config.json.example config.json
 
 ### Example config.json
 
+**For conversations from generated personas:**
+```json
+{
+  "input_dir": "conversation_generator/personas/personas_20251209_140611/conversations_20251209_141530/",
+  "output_folder_prefix": "cxa_evals_output_",
+  "output_file": "sa_multi_turn_conversations.json",
+  "scenario_name": "customer_support",
+  "task": "Customer Support",
+  "groundness_fact": "Knowledge base contains FAQ for customer support.",
+  "cxa_evals_dir": "cxa_evals_transformer/cxa-evals/"
+}
+```
+
+**For conversations from example personas:**
 ```json
 {
   "input_dir": "conversation_generator/output/20241208_123456/",
