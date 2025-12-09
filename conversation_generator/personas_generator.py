@@ -25,7 +25,7 @@ def get_config_values():
     Get configuration values, importing only when needed.
     
     Returns:
-        Tuple of (api_key, endpoint, api_version, deployment)
+        Tuple of (AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_VERSION, CUSTOMER_DEPLOYMENT)
     """
     from . import config
     return (
@@ -105,11 +105,15 @@ def extract_personas_from_prompt(
             if "```json" in response:
                 json_start = response.find("```json") + 7
                 json_end = response.find("```", json_start)
+                if json_end == -1:
+                    raise ValueError("Markdown code block not properly closed")
                 json_str = response[json_start:json_end].strip()
                 personas_data = json.loads(json_str)
             elif "```" in response:
                 json_start = response.find("```") + 3
                 json_end = response.find("```", json_start)
+                if json_end == -1:
+                    raise ValueError("Markdown code block not properly closed")
                 json_str = response[json_start:json_end].strip()
                 personas_data = json.loads(json_str)
             else:
@@ -163,10 +167,10 @@ def save_personas(
     
     # Save metadata including the original prompt
     metadata = {
-        "timestamp": timestamp,
+        "generated_at": datetime.now().isoformat(),  # ISO format timestamp
+        "timestamp": timestamp,  # Human-readable timestamp for directory name
         "prompt": prompt,
-        "num_personas": len(personas_data.get("personas", [])),
-        "generated_at": datetime.now().isoformat()
+        "num_personas": len(personas_data.get("personas", []))
     }
     
     metadata_file = personas_dir / "_metadata.json"
@@ -210,7 +214,7 @@ def main():
         "--model",
         type=str,
         default=None,
-        help=f"Model deployment name (default: from config)"
+        help="Model deployment name (default: from config)"
     )
     
     args = parser.parse_args()
