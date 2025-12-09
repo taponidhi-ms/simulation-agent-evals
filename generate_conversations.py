@@ -17,6 +17,7 @@ Configuration:
 import sys
 import json
 import os
+import shutil
 from pathlib import Path
 from datetime import datetime
 from typing import List
@@ -26,6 +27,11 @@ from conversation_generator.models import PersonaTemplate, GenerationConfig
 from conversation_generator.knowledge_base import KnowledgeBase
 from conversation_generator.agents import LLMClient, CustomerAgent, CSRAgent
 from conversation_generator.orchestrator import ConversationOrchestrator
+
+
+# Import CXA transformer functionality
+from cxa_evals_transformer.transformer import CXAEvalsTransformer
+from cxa_evals_transformer.config_schema import CXAEvalsTransformerConfig
 
 
 # Constants
@@ -96,7 +102,6 @@ def main() -> int:
         print(f"CSR Deployment: {config.CSR_DEPLOYMENT}")
         print(f"Max Turns: {config.MAX_TURNS}")
         print(f"Temperature: {config.TEMPERATURE}")
-        print(f"Conversations to Generate: {config.NUM_CONVERSATIONS}")
         print()
         
         # Initialize LLM client
@@ -168,63 +173,59 @@ def main() -> int:
         print("Step 4: Generating Conversations")
         print("-" * 50)
         print(f"Output directory: {output_dir}")
+        print(f"Generating 1 conversation per persona ({len(personas)} total)")
         print()
         
-        # Generate conversations
+        # Generate conversations - one per persona
         conversations_generated = 0
-        conversations_per_persona = max(1, config.NUM_CONVERSATIONS // len(personas))
         
         for persona in personas:
-            print(f"Generating conversations for: {persona.name}")
+            print(f"Generating conversation for: {persona.name}")
             
-            for i in range(conversations_per_persona):
-                if conversations_generated >= config.NUM_CONVERSATIONS:
-                    break
+            try:
+                # Create agents for this conversation
+                customer_agent = CustomerAgent(
+                    llm_client=llm_client,
+                    persona=persona,
+                    model=config.CUSTOMER_DEPLOYMENT,
+                    temperature=config.TEMPERATURE,
+                    max_tokens=config.MAX_TOKENS
+                )
                 
-                try:
-                    # Create agents for this conversation
-                    customer_agent = CustomerAgent(
-                        llm_client=llm_client,
-                        persona=persona,
-                        model=config.CUSTOMER_DEPLOYMENT,
-                        temperature=config.TEMPERATURE,
-                        max_tokens=config.MAX_TOKENS
-                    )
-                    
-                    csr_agent = CSRAgent(
-                        llm_client=llm_client,
-                        knowledge_base=knowledge_base,
-                        model=config.CSR_DEPLOYMENT,
-                        temperature=config.TEMPERATURE,
-                        max_tokens=config.MAX_TOKENS,
-                        enable_escalation=True
-                    )
-                    
-                    # Create orchestrator and run conversation
-                    orchestrator = ConversationOrchestrator(
-                        customer_agent=customer_agent,
-                        csr_agent=csr_agent,
-                        config=gen_config
-                    )
-                    
-                    conversation = orchestrator.run_conversation(persona)
-                    
-                    # Save conversation
-                    filename = f"{conversation.conversation_id}.json"
-                    filepath = output_dir / filename
-                    
-                    with open(filepath, 'w', encoding='utf-8') as f:
-                        json.dump(conversation.to_dict(), f, indent=2, ensure_ascii=False)
-                    
-                    conversations_generated += 1
-                    status_symbol = "✓" if conversation.status.value != "failed" else "✗"
-                    print(f"  {status_symbol} [{conversations_generated}/{config.NUM_CONVERSATIONS}] "
-                          f"{conversation.status.value} - {conversation.turn_count} turns "
-                          f"({filename})")
+                csr_agent = CSRAgent(
+                    llm_client=llm_client,
+                    knowledge_base=knowledge_base,
+                    model=config.CSR_DEPLOYMENT,
+                    temperature=config.TEMPERATURE,
+                    max_tokens=config.MAX_TOKENS,
+                    enable_escalation=True
+                )
                 
-                except Exception as e:
-                    print(f"  ✗ Error generating conversation: {e}")
-                    continue
+                # Create orchestrator and run conversation
+                orchestrator = ConversationOrchestrator(
+                    customer_agent=customer_agent,
+                    csr_agent=csr_agent,
+                    config=gen_config
+                )
+                
+                conversation = orchestrator.run_conversation(persona)
+                
+                # Save conversation
+                filename = f"{conversation.conversation_id}.json"
+                filepath = output_dir / filename
+                
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    json.dump(conversation.to_dict(), f, indent=2, ensure_ascii=False)
+                
+                conversations_generated += 1
+                status_symbol = "✓" if conversation.status.value != "failed" else "✗"
+                print(f"  {status_symbol} [{conversations_generated}/{len(personas)}] "
+                      f"{conversation.status.value} - {conversation.turn_count} turns "
+                      f"({filename})")
+            
+            except Exception as e:
+                print(f"  ✗ Error generating conversation: {e}")
+                continue
         
         # Generate summary
         print()
@@ -254,6 +255,75 @@ def main() -> int:
             json.dump(metadata, f, indent=2)
         
         print(f"Metadata saved to: {metadata_file}")
+        print()
+        
+        # Step 5: Transform to CXA Evals format
+        print("=" * 70)
+        print("Step 5: Transforming to CXA Evals Format")
+        print("=" * 70)
+        
+        # Create CXA transformer
+        transformer = CXAEvalsTransformer(
+            task="Customer Support",
+            groundness_fact="Knowledge base contains FAQ for customer support."
+        )
+        
+        # Transform conversations
+        cxa_output_file = output_dir / "cxa_evals_multi_turn_conversations.json"
+        num_transformed = transformer.transform_directory(
+            input_dir=str(output_dir),
+            output_file=str(cxa_output_file)
+        )
+        
+        print(f"✓ Transformed {num_transformed} conversations to CXA Evals format")
+        print(f"✓ CXA output saved to: {cxa_output_file}")
+        print()
+        
+        # Step 6: Create CXA Evals config file
+        print("-" * 50)
+        print("Creating CXA Evals Config File")
+        print("-" * 50)
+        
+        # Load template config
+        template_config_path = Path(__file__).parent / "cxa_evals_transformer" / "cxa-evals" / "sa_custom_config_multi_turn.json"
+        
+        if template_config_path.exists():
+            with open(template_config_path, 'r', encoding='utf-8') as f:
+                cxa_config = json.load(f)
+            
+            # Update paths in the config
+            # Use relative path from the config file location to the output file
+            cxa_config_output_dir = output_dir / "cxa-evals-output"
+            cxa_config_output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Make paths relative to the output directory
+            relative_source_path = cxa_output_file.name
+            relative_output_path = "./cxa-evals-output/"
+            
+            cxa_config["source"]["source_folder_path"] = relative_source_path
+            cxa_config["sink"]["output_folder_path"] = relative_output_path
+            
+            # Save the updated config
+            cxa_config_file = output_dir / "sa_custom_config_multi_turn.json"
+            with open(cxa_config_file, 'w', encoding='utf-8') as f:
+                json.dump(cxa_config, f, indent=2)
+            
+            print(f"✓ CXA Evals config saved to: {cxa_config_file}")
+            print(f"  - source_folder_path: {relative_source_path}")
+            print(f"  - output_folder_path: {relative_output_path}")
+        else:
+            print(f"⚠ Warning: Template config not found at {template_config_path}")
+            print("  CXA Evals config file was not created.")
+        
+        print()
+        print("=" * 70)
+        print("Complete!")
+        print("=" * 70)
+        print(f"All files saved to: {output_dir}/")
+        print(f"  - Conversations: {conversations_generated} JSON files")
+        print(f"  - CXA Evals data: cxa_evals_multi_turn_conversations.json")
+        print(f"  - CXA Evals config: sa_custom_config_multi_turn.json")
+        print(f"  - Output directory: cxa-evals-output/")
         
         return 0
     

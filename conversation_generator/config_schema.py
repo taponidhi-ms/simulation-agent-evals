@@ -49,11 +49,6 @@ class ConversationGeneratorConfig(BaseModel):
         le=4000,
         description="Maximum tokens per response"
     )
-    num_conversations: int = Field(
-        default=10,
-        ge=1,
-        description="Number of conversations to generate"
-    )
     
     # Paths
     knowledge_base_path: str = Field(
