@@ -1,5 +1,11 @@
 # CXA Evals Transformer
 
+> **⚠️ DEPRECATED**: This module is now deprecated. CXA Evals transformation is automatically performed by the Conversation Generator module. 
+> 
+> The standalone transformer is kept for backward compatibility with legacy workflows only.
+> 
+> **For new workflows**, use the Conversation Generator which now includes built-in CXA transformation. See [Conversation Generator Documentation](../conversation_generator/README.md).
+
 This module transforms conversation generator output into the format required by the CXA Evals framework for agent performance evaluation.
 
 ## Flow Diagram
