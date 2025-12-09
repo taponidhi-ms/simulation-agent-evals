@@ -149,7 +149,6 @@ def extract_personas_from_prompt(
 
 def save_personas(
     personas_data: Dict[str, Any],
-    output_dir: Path,
     prompt: str
 ) -> Path:
     """
@@ -157,7 +156,6 @@ def save_personas(
     
     Args:
         personas_data: Dictionary containing the personas list
-        output_dir: Base output directory (conversation_generator/personas/)
         prompt: Original prompt used to generate the personas
         
     Returns:
@@ -173,7 +171,8 @@ def save_personas(
     if not isinstance(personas_data["personas"], list):
         raise ValueError("'personas' must be a list")
     
-    # Create timestamped directory
+    # Create timestamped directory (always in conversation_generator/personas/)
+    output_dir = Path(__file__).parent / "personas"
     now = datetime.now()
     timestamp = now.strftime("%Y%m%d_%H%M%S")
     personas_dir = output_dir / f"personas_{timestamp}"
@@ -222,9 +221,10 @@ def transform_personas_to_cxa(personas_data: Dict[str, Any], prompt: str) -> Dic
     
     # Create a single-turn conversation entry for persona generation evaluation
     # This follows the CXA Evals single-turn format with agent_prompt and agent_response
+    # The agent_prompt includes the full system prompt that was used to generate personas
     conversation_entry = {
         "Id": "persona_generation_eval",
-        "agent_prompt": prompt,
+        "agent_prompt": SYSTEM_PROMPT,
         "agent_response": json.dumps(personas_data, indent=2),
         "scenario_name": "PersonaGenerator",
         "persona_prompt": prompt,
@@ -256,12 +256,6 @@ def main():
         help="Path to a text file containing the prompt"
     )
     
-    parser.add_argument(
-        "--output-dir",
-        type=str,
-        default="conversation_generator/personas/",
-        help="Output directory for generated personas (default: conversation_generator/personas/)"
-    )
     parser.add_argument(
         "--temperature",
         type=float,
@@ -319,7 +313,6 @@ def main():
     print(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
     print(f"Model: {model}")
     print(f"Temperature: {args.temperature}")
-    print(f"Output Directory: {args.output_dir}")
     print()
     
     try:
@@ -357,8 +350,7 @@ def main():
             print()
         
         # Save personas
-        output_dir = Path(args.output_dir)
-        personas_file = save_personas(personas_data, output_dir, prompt)
+        personas_file = save_personas(personas_data, prompt)
         
         print("=" * 70)
         print("Transforming Personas to CXA Evals Format")

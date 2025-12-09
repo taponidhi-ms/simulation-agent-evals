@@ -251,6 +251,21 @@ http-client.private.env.json
 # transcript_downloader/output/
 # cxa_evals_transformer/cxa-evals/output/
 
+# Ignore individual conversation transcript files in output directories
+# but keep the combined CXA Evals format files
+conversation_generator/output/*/*.json
+transcript_downloader/output/*/*.json
+!conversation_generator/output/*/cxa_evals_*.json
+!conversation_generator/output/*/sa_custom_config_*.json
+!conversation_generator/output/*/_metadata.json
+!transcript_downloader/output/*/_metadata.json
+
+# Ignore individual persona generation files but keep CXA Evals format
+conversation_generator/personas/personas_*/*.json
+!conversation_generator/personas/personas_*/cxa_evals_*.json
+!conversation_generator/personas/personas_*/cxa_evals_persona_generator_custom_config.json
+!conversation_generator/personas/personas_*/_metadata.json
+
 # Microsoft CXA Evals CLI executable
 /Microsoft.CXA.AIEvals.Cli.exe
 

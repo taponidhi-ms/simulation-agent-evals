@@ -50,7 +50,6 @@ This will create:
 |--------|-------------|
 | `--prompt TEXT` | Natural language prompt describing the simulation scenario |
 | `--prompt-file PATH` | Path to a text file containing the prompt |
-| `--output-dir PATH` | Output directory for generated personas (default: `conversation_generator/personas/`) |
 | `--temperature FLOAT` | LLM temperature (0.0-2.0, default: 0.7) |
 | `--model NAME` | Model deployment name (default: from config) |
 
@@ -91,15 +90,31 @@ For backward compatibility, a separate `_metadata.json` file is also created wit
 1. **Prompt Processing**: The natural language prompt is sent to an LLM with instructions to extract customer personas
 2. **Structured Generation**: The LLM generates a structured JSON response with persona details
 3. **Validation**: The response is validated to ensure it has all required fields
-4. **Saving**: Personas are saved to a timestamped directory with metadata
+4. **Saving**: Personas are saved to a timestamped directory (`conversation_generator/personas/personas_YYYYMMDD_HHMMSS/`) with metadata
+5. **CXA Evals Format**: The personas are also transformed to CXA Evals format for evaluation
 
 ## Examples
 
-Example personas are available in `conversation_generator/personas/examples/`:
-- `personas.json` - A set of 10 diverse customer service personas
-- `single_persona_for_testing.json` - A single persona for quick testing
+There are no pre-made example personas. All personas must be generated using the `generate_personas.py` script with your own prompts tailored to your specific use case.
 
-You can use these as references when creating custom personas or as templates for the Conversation Generator.
+## CXA Evals Integration
+
+The Personas Generator automatically creates files for evaluation with CXA Evals:
+
+1. **`cxa_evals_personas.json`**: Contains the generated personas in CXA Evals single-turn format
+   - The `agent_prompt` field contains the full system prompt used by the LLM to generate personas
+   - The `agent_response` field contains the generated personas JSON
+   - The `persona_prompt` field contains the user's original prompt
+
+2. **`cxa_evals_persona_generator_custom_config.json`**: CXA Evals configuration file with custom rules for evaluating:
+   - **persona_diversity**: Checks for diverse personas with varying tones, goals, and complexity levels
+   - **persona_completeness**: Ensures all required fields are present
+   - **persona_relevance**: Validates personas are relevant to the scenario
+   - **persona_distribution**: Verifies the distribution of personas matches what was requested in the prompt (e.g., 50% calm, 50% angry)
+
+3. **`cxa-evals-output/`**: Directory for CXA Evals evaluation results
+
+These files enable automated quality assessment of the generated personas to ensure they meet the requirements specified in the prompt.
 
 ## Integration with Conversation Generator
 
