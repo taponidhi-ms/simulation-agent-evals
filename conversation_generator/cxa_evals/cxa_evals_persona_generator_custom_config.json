@@ -1,0 +1,92 @@
+{
+  "team_name": "Omnichannel",
+  "agent_name": "PersonaGenerator",
+  "source": {
+    "source_folder_path": "cxa_evals_personas.json",
+    "source_file_type": "json",
+    "variable_columns": [
+      "persona_prompt"
+    ]
+  },
+  "eval_config": {
+    "options": [
+      "enable_logging",
+      "dev"
+    ],
+    "turn_mode": "single_turn",
+    "lower_bound_score": 1,
+    "upper_bound_score": 10,
+    "score_threshold": 7,
+    "metric": "custom",
+    "custom_rules": [
+      {
+        "scenario_name": "PersonaGenerator",
+        "rules": [
+          {
+            "rule_name": "persona_diversity",
+            "rule_category": "Content",
+            "rule_description": "Agent response must generate diverse personas with varying tones, goals, and complexity levels based on the prompt: {{persona_prompt}}",
+            "scoring_hint": ""
+          },
+          {
+            "rule_name": "persona_completeness",
+            "rule_category": "Completeness",
+            "rule_description": "Agent response must include all required persona fields: name, description, goal, tone, and complexity for each persona",
+            "scoring_hint": ""
+          },
+          {
+            "rule_name": "persona_relevance",
+            "rule_category": "Relevance",
+            "rule_description": "Generated personas must be relevant to the scenario described in the prompt: {{persona_prompt}}",
+            "scoring_hint": ""
+          }
+        ]
+      }
+    ]
+  },
+  "llm_config": {
+    "adapters": {
+      "capi": {
+        "enabled": true,
+        "type": "capi",
+        "model": "gpt-41-mini-2025-04-14",
+        "prompt_parameters": {
+          "temperature": 0,
+          "top_p": 1,
+          "max_completion_tokens": 2000
+        },
+        "authorization": {
+          "endpoint": "https://capi-resourceproxy.wus-il002.gateway.test.island.powerapps.com/v0/resourceproxy/envid.360f9d1b-9200-f011-9981-000d3a32ddb4/azureopenai/llm/gpt-41-mini-2025-04-14/chatcompletions",
+          "client_id": "079f5a03-090f-4720-90b9-e03942091e6e",
+          "tenant_id": "f8cdef31-a31e-4b4a-93e4-5f571e91255a",
+          "resource_uri": "api://4309f23c-178a-4fc7-a36e-68d8fee6ca7b",
+          "key_vault_name": "crmanalyticstip",
+          "certificate_secret_name": "dynamics-cca-data-analytics-test",
+          "headers": {
+            "x-ms-source": "{\"consumptionSource\":\"Api\",\"partnerSource\":\"D365Sales.Copilot.CXAEvals\"}",
+            "x-ms-client-principal-id": "b1ee8c0b-c63a-45f8-b198-90ed3dd5b87e",
+            "x-ms-client-tenant-id": "04f02989-9a26-4c15-bf84-5ee3f23b1301"
+          },
+          "token_cache_seconds": 300
+        },
+        "timeout_seconds": 60,
+        "retries": 2
+      }
+    }
+  },
+  "sink": {
+    "type": "LocalFileWriter",
+    "output_folder_path": "./cxa-evals-output/"
+  },
+  "reporting": {
+    "enabled": false,
+    "authorization": {
+      "client_id": "079f5a03-090f-4720-90b9-e03942091e6e",
+      "tenant_id": "72f988bf-86f1-41af-91ab-2d7cd011db47",
+      "resource_uri": "api://evaluation-results-api",
+      "key_vault_name": "crmanalyticstip",
+      "certificate_secret_name": "dynamics-cca-data-analytics-test",
+      "token_cache_seconds": 3600
+    }
+  }
+}

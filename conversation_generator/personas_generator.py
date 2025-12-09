@@ -207,6 +207,44 @@ def save_personas(
     return personas_file
 
 
+def transform_personas_to_cxa(personas_data: Dict[str, Any], prompt: str) -> Dict[str, Any]:
+    """
+    Transform personas to CXA Evals format for evaluation.
+    
+    Args:
+        personas_data: Dictionary containing personas list
+        prompt: The original prompt used to generate personas
+        
+    Returns:
+        Dictionary in CXA Evals format
+    """
+    conversations = []
+    
+    # Create a single-turn conversation for persona generation evaluation
+    # The "user" (prompt) asks for personas, the "agent" (system) generates them
+    conversation_entry = {
+        "Id": "persona_generation_eval",
+        "scenario_name": "PersonaGenerator",
+        "conversation": [
+            {
+                "role": "user",
+                "content": prompt
+            },
+            {
+                "role": "assistant",
+                "content": json.dumps(personas_data, indent=2)
+            }
+        ],
+        "persona_prompt": prompt
+    }
+    
+    conversations.append(conversation_entry)
+    
+    return {
+        "conversations": conversations
+    }
+
+
 def main():
     """Main entry point for personas generator."""
     parser = argparse.ArgumentParser(
@@ -330,10 +368,60 @@ def main():
         personas_file = save_personas(personas_data, output_dir, prompt)
         
         print("=" * 70)
+        print("Transforming Personas to CXA Evals Format")
+        print("=" * 70)
+        
+        # Transform personas to CXA evals format
+        cxa_personas = transform_personas_to_cxa(personas_data, prompt)
+        cxa_personas_file = personas_file.parent / "cxa_evals_personas.json"
+        
+        with open(cxa_personas_file, 'w', encoding='utf-8') as f:
+            json.dump(cxa_personas, f, indent=2, ensure_ascii=False)
+        
+        print(f"✓ CXA Evals personas saved to: {cxa_personas_file}")
+        print()
+        
+        # Create CXA Evals config for persona evaluation
+        print("Creating CXA Evals Config for Persona Evaluation")
+        print("-" * 70)
+        
+        template_config_path = Path(__file__).parent / "cxa_evals" / "cxa_evals_persona_generator_custom_config.json"
+        
+        if template_config_path.exists():
+            with open(template_config_path, 'r', encoding='utf-8') as f:
+                cxa_config = json.load(f)
+            
+            # Update paths in the config
+            cxa_config_output_dir = personas_file.parent / "cxa-evals-output"
+            cxa_config_output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Make paths relative to the personas directory
+            relative_source_path = cxa_personas_file.name
+            relative_output_path = "./cxa-evals-output/"
+            
+            cxa_config["source"]["source_folder_path"] = relative_source_path
+            cxa_config["sink"]["output_folder_path"] = relative_output_path
+            
+            # Save the updated config
+            cxa_config_file = personas_file.parent / "cxa_evals_persona_generator_custom_config.json"
+            with open(cxa_config_file, 'w', encoding='utf-8') as f:
+                json.dump(cxa_config, f, indent=2)
+            
+            print(f"✓ CXA Evals config saved to: {cxa_config_file}")
+            print(f"  - source_folder_path: {relative_source_path}")
+            print(f"  - output_folder_path: {relative_output_path}")
+        else:
+            print(f"⚠ Warning: Template config not found at {template_config_path}")
+            print("  CXA Evals config file was not created.")
+        
+        print()
+        print("=" * 70)
         print("Success!")
         print("=" * 70)
         print(f"Personas saved to: {personas_file}")
         print(f"Metadata saved to: {personas_file.parent / '_metadata.json'}")
+        print(f"CXA Evals personas: {cxa_personas_file}")
+        print(f"CXA Evals config: {cxa_config_file}")
         print()
         
         return 0

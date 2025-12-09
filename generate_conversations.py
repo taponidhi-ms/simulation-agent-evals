@@ -29,7 +29,7 @@ from conversation_generator.orchestrator import ConversationOrchestrator
 
 
 # Import CXA transformer functionality
-from cxa_evals_transformer.transformer import CXAEvalsTransformer
+from conversation_generator.cxa_evals.transformer import CXAEvalsTransformer
 
 
 # Constants
@@ -283,7 +283,7 @@ def main() -> int:
         print("-" * 50)
         
         # Load template config
-        template_config_path = Path(__file__).parent / "cxa_evals_transformer" / "cxa-evals" / "sa_custom_config_multi_turn.json"
+        template_config_path = Path(__file__).parent / "conversation_generator" / "cxa_evals" / "cxa_evals_conversation_generator_custom_config.json"
         
         if template_config_path.exists():
             with open(template_config_path, 'r', encoding='utf-8') as f:
@@ -302,7 +302,7 @@ def main() -> int:
             cxa_config["sink"]["output_folder_path"] = relative_output_path
             
             # Save the updated config
-            cxa_config_file = output_dir / "sa_custom_config_multi_turn.json"
+            cxa_config_file = output_dir / "cxa_evals_conversation_generator_custom_config.json"
             with open(cxa_config_file, 'w', encoding='utf-8') as f:
                 json.dump(cxa_config, f, indent=2)
             
@@ -320,7 +320,7 @@ def main() -> int:
         print(f"All files saved to: {output_dir}/")
         print(f"  - Conversations: {conversations_generated} JSON files")
         print(f"  - CXA Evals data: cxa_evals_multi_turn_conversations.json")
-        print(f"  - CXA Evals config: sa_custom_config_multi_turn.json")
+        print(f"  - CXA Evals config: cxa_evals_conversation_generator_custom_config.json")
         print(f"  - Output directory: cxa-evals-output/")
         
         return 0
