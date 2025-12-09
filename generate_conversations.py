@@ -28,6 +28,10 @@ from conversation_generator.agents import LLMClient, CustomerAgent, CSRAgent
 from conversation_generator.orchestrator import ConversationOrchestrator
 
 
+# Constants
+GENERATED_PERSONAS_PREFIX = "personas_"  # Prefix for generated personas folders
+
+
 def load_personas(persona_file: str) -> List[PersonaTemplate]:
     """
     Load persona templates from JSON file.
@@ -145,7 +149,7 @@ def main() -> int:
         persona_parent = persona_path.parent
         
         # Check if parent directory name starts with "personas_" (indicating a generated personas folder)
-        if persona_parent.name.startswith("personas_"):
+        if persona_parent.name.startswith(GENERATED_PERSONAS_PREFIX):
             # Save conversations inside the personas folder
             output_dir = persona_parent / f"conversations_{timestamp}"
         else:
