@@ -149,15 +149,18 @@ See [PERSONAS_GENERATOR.md](PERSONAS_GENERATOR.md) for detailed documentation.
 
 ### Knowledge Base
 
-The CSR agent uses a knowledge base to answer questions. The default knowledge base (`data/knowledge_base/faq.json`) includes:
-- Return and refund policies
-- Shipping and tracking information
-- Account management
-- Product warranties
-- Billing and payment
-- Technical support
+The CSR agent uses a knowledge base to answer questions. Available knowledge bases:
 
-You can customize or extend the knowledge base by editing the JSON file or adding new files to the `knowledge_base/` directory.
+- **Generic FAQ** (`conversation_generator/knowledge_base/faq.json`): General customer support topics including returns, shipping, account management, product warranties, billing, and technical support.
+
+- **Flower Delivery FAQ** (`conversation_generator/knowledge_base/blooms-faq.json`): Specialized FAQ for flower delivery companies, covering delivery options, freshness, customization, occasions, subscriptions, and more.
+
+You can:
+- Use a single FAQ file: `"knowledge_base_path": "conversation_generator/knowledge_base/blooms-faq.json"`
+- Load all FAQ files from directory: `"knowledge_base_path": "conversation_generator/knowledge_base/"`
+- Create custom FAQ files following the structure in existing files
+
+See [knowledge_base/README.md](knowledge_base/README.md) for details on the FAQ file format and creating custom knowledge bases.
 
 ### Conversation Termination
 
@@ -228,41 +231,64 @@ The `_metadata.json` file contains generation settings and summary information.
 
 ```
 conversation_generator/
-├── __init__.py           # Package initialization
-├── models.py             # Data models (Message, ConversationState, PersonaTemplate)
-├── config.py             # Configuration settings
-├── knowledge_base.py     # Knowledge base handler
-├── agents.py             # Customer and CSR agent implementations
-├── orchestrator.py       # Conversation orchestrator
-└── personas.json         # Persona templates
+├── __init__.py              # Package initialization
+├── models.py                # Data models (Message, ConversationState, PersonaTemplate)
+├── config.py                # Configuration settings
+├── config_schema.py         # Configuration validation schema
+├── knowledge_base.py        # Knowledge base handler
+├── agents.py                # Customer and CSR agent implementations
+├── orchestrator.py          # Conversation orchestrator
+├── personas_generator.py    # Personas generator module
+├── knowledge_base/          # Knowledge base files
+│   ├── faq.json            # Generic customer support FAQ
+│   ├── blooms-faq.json     # Flower delivery FAQ
+│   └── README.md           # Knowledge base documentation
+├── personas/                # Persona files
+│   ├── examples/           # Example persona templates
+│   │   └── personas.json
+│   └── personas_YYYYMMDD_HHMMSS/  # Generated personas (created by personas_generator)
+├── output/                  # Output for conversations using example personas
+├── README.md               # This file
+└── PERSONAS_GENERATOR.md   # Personas generator documentation
 ```
 
 ## Customization
 
 ### Adding Custom Personas
 
-Edit `conversation_generator/personas.json`:
+You have two options:
 
-```json
-{
-  "personas": [
-    {
-      "name": "Your Persona Name",
-      "description": "Detailed situation description",
-      "goal": "What the customer wants to achieve",
-      "tone": "Expected tone/emotion",
-      "complexity": "simple|medium|complex"
-    }
-  ]
-}
-```
+1. **Use Personas Generator** (Recommended):
+   ```bash
+   python generate_personas.py --prompt "Your scenario description"
+   ```
+   See [PERSONAS_GENERATOR.md](PERSONAS_GENERATOR.md) for details.
+
+2. **Manually Edit Personas Files**:
+   
+   Edit `conversation_generator/personas/examples/personas.json` or create a new file:
+   
+   ```json
+   {
+     "personas": [
+       {
+         "name": "Your Persona Name",
+         "description": "Detailed situation description",
+         "goal": "What the customer wants to achieve",
+         "tone": "Expected tone/emotion",
+         "complexity": "simple|medium|complex"
+       }
+     ]
+   }
+   ```
 
 ### Extending Knowledge Base
 
-Add items to `data/knowledge_base/faq.json`:
+Add a new FAQ file to `conversation_generator/knowledge_base/`:
 
 ```json
 {
+  "_note": "This is TEST DATA ONLY. Update with actual business information before production use.",
   "items": [
     {
       "category": "category_name",
@@ -273,6 +299,8 @@ Add items to `data/knowledge_base/faq.json`:
   ]
 }
 ```
+
+See [knowledge_base/README.md](knowledge_base/README.md) for more details.
 
 ### Using Azure OpenAI
 

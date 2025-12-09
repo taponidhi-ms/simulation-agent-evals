@@ -6,8 +6,12 @@ This repository contains tools for evaluating the SimulationAgent feature in Dyn
 
 ```mermaid
 flowchart LR
+    subgraph Module0[Module 0: Personas Generator]
+        PA[Generate Personas<br/>from Prompt] --> PB[personas/personas_YYYYMMDD_HHMMSS/<br/>personas.json + _metadata]
+    end
+    
     subgraph Module1[Module 1: Conversation Generator]
-        A[Generate Synthetic<br/>Conversations] --> B[conversation_generator/output/<br/>timestamp/]
+        A[Generate Synthetic<br/>Conversations] --> B[personas/personas_YYYYMMDD_HHMMSS/<br/>conversations_YYYYMMDD_HHMMSS/]
     end
     
     subgraph Module2[Module 2: Transcript Downloader]
@@ -22,14 +26,17 @@ flowchart LR
         G[Run Evaluation] --> H[Evaluation Results]
     end
     
+    PB -->|Use in config| A
     B -->|Path in config.json| E
     D -.->|Alternative Input| E
     F -->|Path in config| G
     
+    style PA fill:#e1f5e1
     style A fill:#e1f5e1
     style C fill:#e1f5e1
     style E fill:#e1f5e1
     style G fill:#e1e5ff
+    style PB fill:#fff4e1
     style B fill:#fff4e1
     style D fill:#fff4e1
     style F fill:#fff4e1
@@ -144,22 +151,31 @@ Copy the `.example` files to create your configuration files. See each module's 
 
 ### End-to-End Evaluation Workflow
 
-1. **Generate Conversations**:
+1. **Generate Personas** (optional, for custom scenarios):
    ```bash
+   python generate_personas.py --prompt "Your scenario description"
+   ```
+   Outputs: `conversation_generator/personas/personas_20251209_140611/personas.json`
+
+2. **Generate Conversations**:
+   ```bash
+   # Update conversation_generator/config.json with persona path:
+   #   "persona_templates_path": "conversation_generator/personas/personas_20251209_140611/personas.json"
    python generate_conversations.py
    ```
-   Outputs: `conversation_generator/output/20241208_123456/`
+   Outputs: `conversation_generator/personas/personas_20251209_140611/conversations_20251209_141530/`
 
-2. **Transform for CXA Evals**:
+3. **Transform for CXA Evals**:
    ```bash
-   # Update cxa_evals_transformer/config.json with the output path
+   # Update cxa_evals_transformer/config.json with the conversations path:
+   #   "input_dir": "conversation_generator/personas/personas_20251209_140611/conversations_20251209_141530/"
    python transform_for_cxa_evals.py
    ```
-   Outputs: `cxa_evals_transformer/output/cxa_evals_output_20241208_123500/sa_multi_turn_conversations.json`
+   Outputs: `cxa_evals_transformer/output/cxa_evals_output_20251209_141600/sa_multi_turn_conversations.json`
 
-3. **Update CXA Evals config** with the transformed file path in `sa_custom_config_multi_turn.json`
+4. **Update CXA Evals config** with the transformed file path in `sa_custom_config_multi_turn.json`
 
-4. **Run CXA Evals** (separate framework) with the transformed conversations
+5. **Run CXA Evals** (separate framework) with the transformed conversations
 
 ### Alternative: Download Real Transcripts
 
@@ -178,8 +194,20 @@ Outputs: `transcript_downloader/output/20241208_123456/`
 │   ├── config.json              # Configuration (create from .example)
 │   ├── config.json.example      # Example configuration
 │   ├── knowledge_base/          # Knowledge base for CSR agent
-│   ├── output/                  # Generated conversations
-│   ├── personas.json            # Customer personas
+│   │   ├── faq.json            # Generic customer support FAQ
+│   │   ├── blooms-faq.json     # Flower delivery company FAQ
+│   │   └── README.md           # Knowledge base documentation
+│   ├── personas/                # Persona files
+│   │   ├── examples/           # Example persona templates
+│   │   │   └── personas.json
+│   │   └── personas_YYYYMMDD_HHMMSS/  # Generated personas
+│   │       ├── personas.json           # Personas with embedded metadata
+│   │       ├── _metadata.json          # Separate metadata file
+│   │       └── conversations_YYYYMMDD_HHMMSS/  # Generated conversations
+│   │           ├── {conversation-id}.json
+│   │           └── _metadata.json
+│   ├── output/                  # Output for example personas
+│   ├── PERSONAS_GENERATOR.md    # Personas generator documentation
 │   └── README.md                # Module documentation
 │
 ├── transcript_downloader/        # Transcript downloader module
@@ -198,6 +226,7 @@ Outputs: `transcript_downloader/output/20241208_123456/`
 │   │   └── sa_custom_config_multi_turn.json
 │   └── README.md                # Module documentation
 │
+├── generate_personas.py         # Personas generator entry point
 ├── generate_conversations.py    # Conversation generator entry point
 ├── download_transcripts.py      # Transcript downloader entry point
 ├── transform_for_cxa_evals.py   # CXA Evals transformer entry point
@@ -214,7 +243,12 @@ For detailed documentation on each module:
 
 ## Output
 
-- **Conversation Generator**: Saves conversations to `conversation_generator/output/{timestamp}/`
+- **Personas Generator**: Saves personas to `conversation_generator/personas/personas_{timestamp}/`
+  - `personas.json` (with embedded `_metadata`)
+  - `_metadata.json` (for backward compatibility)
+- **Conversation Generator**: 
+  - For generated personas: Saves to `conversation_generator/personas/personas_{timestamp}/conversations_{timestamp}/`
+  - For example personas: Saves to `conversation_generator/output/{timestamp}/`
 - **Transcript Downloader**: Saves transcripts to `transcript_downloader/output/{timestamp}/`
 - **CXA Evals Transformer**: Saves transformed conversations to `cxa_evals_transformer/output/{prefix}_{timestamp}/`
 
