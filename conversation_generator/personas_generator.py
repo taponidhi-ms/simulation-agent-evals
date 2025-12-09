@@ -156,7 +156,8 @@ def save_personas(
         Path to the saved personas.json file
     """
     # Create timestamped directory
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    now = datetime.now()
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
     personas_dir = output_dir / f"personas_{timestamp}"
     personas_dir.mkdir(parents=True, exist_ok=True)
     
@@ -167,7 +168,7 @@ def save_personas(
     
     # Save metadata including the original prompt
     metadata = {
-        "generated_at": datetime.now().isoformat(),  # ISO format timestamp
+        "generated_at": now.isoformat(),  # ISO format timestamp
         "timestamp": timestamp,  # Compact timestamp format for directory name
         "prompt": prompt,
         "num_personas": len(personas_data.get("personas", []))
@@ -231,8 +232,15 @@ def main():
     if args.prompt:
         prompt = args.prompt
     else:
-        with open(args.prompt_file, 'r', encoding='utf-8') as f:
-            prompt = f.read().strip()
+        try:
+            with open(args.prompt_file, 'r', encoding='utf-8') as f:
+                prompt = f.read().strip()
+        except FileNotFoundError:
+            print(f"Error: Prompt file not found: {args.prompt_file}", file=sys.stderr)
+            return 1
+        except Exception as e:
+            print(f"Error reading prompt file: {e}", file=sys.stderr)
+            return 1
     
     # Validate configuration
     if not api_key:
