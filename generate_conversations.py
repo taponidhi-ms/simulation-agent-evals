@@ -136,9 +136,22 @@ def main() -> int:
             enable_escalation=True
         )
         
-        # Create output directory
+        # Determine output directory
+        # If personas are from a generated personas folder (e.g., personas_20251209_140611),
+        # save conversations inside that folder as conversations_{timestamp}
+        # Otherwise, use the default output directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_dir = Path(config.OUTPUT_DIR) / timestamp
+        persona_path = Path(config.PERSONA_TEMPLATES_PATH)
+        persona_parent = persona_path.parent
+        
+        # Check if parent directory name starts with "personas_" (indicating a generated personas folder)
+        if persona_parent.name.startswith("personas_"):
+            # Save conversations inside the personas folder
+            output_dir = persona_parent / f"conversations_{timestamp}"
+        else:
+            # Use default output directory (old behavior for examples folder)
+            output_dir = Path(config.OUTPUT_DIR) / timestamp
+        
         output_dir.mkdir(parents=True, exist_ok=True)
         
         print("-" * 50)
