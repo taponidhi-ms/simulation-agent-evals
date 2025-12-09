@@ -12,13 +12,15 @@ flowchart LR
     
     subgraph Module1[Module 1: Conversation Generator]
         A[Generate Synthetic<br/>Conversations] --> B[personas/personas_YYYYMMDD_HHMMSS/<br/>conversations_YYYYMMDD_HHMMSS/]
+        B --> B1[Auto Transform<br/>to CXA Format]
+        B1 --> B2[cxa_evals_multi_turn_conversations.json<br/>+ sa_custom_config_multi_turn.json]
     end
     
     subgraph Module2[Module 2: Transcript Downloader]
         C[Download Real<br/>Transcripts] --> D[transcript_downloader/output/<br/>timestamp/]
     end
     
-    subgraph Module3[Module 3: CXA Evals Transformer]
+    subgraph Module3[Module 3: CXA Evals Transformer - DEPRECATED]
         E[Transform to<br/>CXA Format] --> F[cxa_evals_transformer/output/<br/>prefix_timestamp/]
     end
     
@@ -27,19 +29,21 @@ flowchart LR
     end
     
     PB -->|Use in config| A
-    B -->|Path in config.json| E
-    D -.->|Alternative Input| E
-    F -->|Path in config| G
+    B2 -->|Use config file| G
+    D -.->|Legacy: Use with Module 3| E
+    F -.->|Legacy Path| G
     
     style PA fill:#e1f5e1
     style A fill:#e1f5e1
     style C fill:#e1f5e1
-    style E fill:#e1f5e1
+    style E fill:#ffd4d4
     style G fill:#e1e5ff
     style PB fill:#fff4e1
     style B fill:#fff4e1
+    style B1 fill:#d4f4ff
+    style B2 fill:#d4f4ff
     style D fill:#fff4e1
-    style F fill:#fff4e1
+    style F fill:#ffd4d4
     style H fill:#e1e5ff
 ```
 
@@ -75,6 +79,9 @@ python generate_personas.py --prompt "Your prompt describing the scenario"
 #   "persona_templates_path": "conversation_generator/personas/personas_YYYYMMDD_HHMMSS/personas.json"
 python generate_conversations.py
 # Creates: conversation_generator/personas/personas_YYYYMMDD_HHMMSS/conversations_YYYYMMDD_HHMMSS/
+#   - One conversation per persona
+#   - Automatically transformed to CXA Evals format
+#   - Includes CXA Evals config file with correct paths
 ```
 
 **[📖 View Personas Generator Documentation](conversation_generator/PERSONAS_GENERATOR.md)**
@@ -97,12 +104,15 @@ python download_transcripts.py
 
 ---
 
-### 3. CXA Evals Transformer
+### 3. CXA Evals Transformer (Deprecated - Integrated into Conversation Generator)
+
+> **Note**: CXA Evals transformation is now automatically performed by the Conversation Generator. You no longer need to run the transformer separately. The standalone transformer is kept for backward compatibility with old workflows.
+
 Transforms conversation generator output into CXA Evals framework input format for agent performance evaluation.
 
 **[📖 View Documentation](cxa_evals_transformer/README.md)**
 
-**Quick Start:**
+**For Legacy Workflows Only:**
 ```bash
 cd cxa_evals_transformer
 cp config.json.example config.json
@@ -164,18 +174,16 @@ Copy the `.example` files to create your configuration files. See each module's 
    python generate_conversations.py
    ```
    Outputs: `conversation_generator/personas/personas_20251209_140611/conversations_20251209_141530/`
+   - Creates one conversation per persona
+   - Automatically generates CXA Evals format: `cxa_evals_multi_turn_conversations.json`
+   - Creates CXA Evals config: `sa_custom_config_multi_turn.json`
+   - Creates output directory: `cxa-evals-output/`
 
-3. **Transform for CXA Evals**:
+3. **Run CXA Evals** (using the generated config):
    ```bash
-   # Update cxa_evals_transformer/config.json with the conversations path:
-   #   "input_dir": "conversation_generator/personas/personas_20251209_140611/conversations_20251209_141530/"
-   python transform_for_cxa_evals.py
+   cd conversation_generator/personas/personas_20251209_140611/conversations_20251209_141530/
+   # Run CXA Evals framework with sa_custom_config_multi_turn.json
    ```
-   Outputs: `cxa_evals_transformer/output/cxa_evals_output_20251209_141600/sa_multi_turn_conversations.json`
-
-4. **Update CXA Evals config** with the transformed file path in `sa_custom_config_multi_turn.json`
-
-5. **Run CXA Evals** (separate framework) with the transformed conversations
 
 ### Alternative: Download Real Transcripts
 
@@ -248,9 +256,15 @@ For detailed documentation on each module:
   - `_metadata.json` (for backward compatibility)
 - **Conversation Generator**: 
   - For generated personas: Saves to `conversation_generator/personas/personas_{timestamp}/conversations_{timestamp}/`
-  - For example personas: Saves to `conversation_generator/output/{timestamp}/`
+    - Individual conversation JSON files (one per persona)
+    - `_metadata.json` file
+    - `cxa_evals_multi_turn_conversations.json` (CXA Evals format)
+    - `sa_custom_config_multi_turn.json` (CXA Evals config)
+    - `cxa-evals-output/` directory (for evaluation results)
+  - For example personas: Saves to `conversation_generator/output/{timestamp}/` (same structure as above)
 - **Transcript Downloader**: Saves transcripts to `transcript_downloader/output/{timestamp}/`
-- **CXA Evals Transformer**: Saves transformed conversations to `cxa_evals_transformer/output/{prefix}_{timestamp}/`
+- **CXA Evals Transformer**: ⚠️ Deprecated - functionality integrated into Conversation Generator
+  - Legacy standalone output: `cxa_evals_transformer/output/{prefix}_{timestamp}/`
 
 All modules organize output in timestamped folders for easy tracking and version control.
 
