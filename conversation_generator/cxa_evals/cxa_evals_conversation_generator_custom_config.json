@@ -2,7 +2,7 @@
   "team_name": "Omnichannel",
   "agent_name": "SimulationAgent",
   "source": {
-    "source_folder_path": ".\\cxa_evals_transformer\\output\\cxa_evals_output_20251208_182511\\sa_multi_turn_conversations.json",
+    "source_folder_path": "cxa_evals_multi_turn_conversations.json",
     "source_file_type": "json",
     "variable_columns": [
       "task",
@@ -82,7 +82,7 @@
   },
   "sink": {
     "type": "LocalFileWriter",
-    "output_folder_path": ".\\cxa_evals_transformer\\cxa-evals\\output\\"
+    "output_folder_path": "./cxa-evals-output/"
   },
   "reporting": {
     "enabled": false,
