@@ -11,7 +11,7 @@ flowchart TD
     C --> D[Load Knowledge Base<br/>FAQs & Policies]
     D --> E[Load Persona Templates<br/>personas.json]
     E --> F[Create Timestamped Output Directory<br/>output/YYYYMMDD_HHMMSS/]
-    F --> G{For Each Persona}
+    F --> G{For Each Persona<br/>1 conversation per persona}
     G --> H[Create Customer Agent<br/>with Persona]
     H --> I[Create CSR Agent<br/>with Knowledge Base]
     I --> J[Initialize Orchestrator]
@@ -23,15 +23,23 @@ flowchart TD
     L -->|Continue| N[Customer Turn]
     N --> O[CSR Turn]
     O --> L
-    M --> P{More<br/>Conversations?}
+    M --> P{More<br/>Personas?}
     P -->|Yes| G
     P -->|No| Q[Save Metadata JSON]
-    Q --> R[End: Conversations Saved]
+    Q --> R[Transform to CXA Evals Format]
+    R --> S[Create cxa_evals_multi_turn_conversations.json]
+    S --> T[Create sa_custom_config_multi_turn.json]
+    T --> U[Create cxa-evals-output/ directory]
+    U --> V[End: All Files Saved]
     
     style A fill:#e1f5e1
-    style R fill:#e1f5e1
+    style V fill:#e1f5e1
     style F fill:#fff4e1
     style M fill:#fff4e1
+    style R fill:#d4f4ff
+    style S fill:#d4f4ff
+    style T fill:#d4f4ff
+    style U fill:#d4f4ff
 ```
 
 ## Overview
