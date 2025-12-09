@@ -221,11 +221,12 @@ def transform_personas_to_cxa(personas_data: Dict[str, Any], prompt: str) -> Dic
     
     # Create a single-turn conversation entry for persona generation evaluation
     # This follows the CXA Evals single-turn format with agent_prompt and agent_response
-    # The system_prompt contains the LLM instructions, and agent_prompt combines both
+    # The system_prompt contains the LLM instructions, and agent_prompt uses template variables
+    # that will be substituted by the CXA Evals framework
     conversation_entry = {
         "Id": "persona_generation_eval",
         "system_prompt": SYSTEM_PROMPT,
-        "agent_prompt": f"{SYSTEM_PROMPT} Now generate personas with given prompt: {prompt}",
+        "agent_prompt": "{system_prompt} Now generate personas with given prompt: {persona_prompt}",
         "agent_response": json.dumps(personas_data, indent=2),
         "scenario_name": "PersonaGenerator",
         "persona_prompt": prompt,
