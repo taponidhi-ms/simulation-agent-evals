@@ -13,6 +13,7 @@ Usage:
 import json
 import argparse
 import sys
+import traceback
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any
@@ -318,7 +319,6 @@ def main():
         print("Error!")
         print("=" * 70)
         print(f"{e}", file=sys.stderr)
-        import traceback
         traceback.print_exc()
         return 1
 
