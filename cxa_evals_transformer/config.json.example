@@ -1,9 +1,0 @@
-{
-  "input_dir": "conversation_generator/personas/personas_20251209_140611/conversations_20251209_141530/",
-  "output_folder_prefix": "cxa_evals_output_",
-  "output_file": "sa_multi_turn_conversations.json",
-  "scenario_name": "customer_support",
-  "task": "Customer Support",
-  "groundness_fact": "",
-  "cxa_evals_dir": "cxa_evals_transformer/cxa-evals/"
-}

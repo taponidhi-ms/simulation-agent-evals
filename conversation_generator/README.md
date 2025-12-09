@@ -220,14 +220,17 @@ Conversations are organized by timestamp. The output location depends on the sou
 conversation_generator/personas/personas_YYYYMMDD_HHMMSS/
 ├── personas.json
 ├── _metadata.json
+├── cxa_evals_personas.json                               # CXA Evals format
+├── cxa_evals_persona_generator_custom_config.json        # CXA Evals config
+├── cxa-evals-output/                                     # Persona eval results
 └── conversations_YYYYMMDD_HHMMSS/
     ├── {conversation-id-1}.json
     ├── {conversation-id-2}.json
     ├── ...
     ├── _metadata.json
-    ├── cxa_evals_multi_turn_conversations.json   # CXA Evals format
-    ├── sa_custom_config_multi_turn.json          # CXA Evals config
-    └── cxa-evals-output/                         # CXA Evals results directory
+    ├── cxa_evals_multi_turn_conversations.json           # CXA Evals format
+    ├── cxa_evals_conversation_generator_custom_config.json  # CXA Evals config
+    └── cxa-evals-output/                                 # Conversation eval results
 ```
 
 **When using example personas** (from `personas/examples/`):
@@ -237,12 +240,12 @@ conversation_generator/output/YYYYMMDD_HHMMSS/
 ├── {conversation-id-2}.json
 ├── ...
 ├── _metadata.json
-├── cxa_evals_multi_turn_conversations.json       # CXA Evals format
-├── sa_custom_config_multi_turn.json              # CXA Evals config
-└── cxa-evals-output/                             # CXA Evals results directory
+├── cxa_evals_multi_turn_conversations.json               # CXA Evals format
+├── cxa_evals_conversation_generator_custom_config.json   # CXA Evals config
+└── cxa-evals-output/                                     # Conversation eval results
 ```
 
-The `_metadata.json` file contains generation settings and summary information. The `cxa_evals_multi_turn_conversations.json` file contains all conversations in CXA Evals format, ready for evaluation.
+The `_metadata.json` file contains generation settings and summary information. The `cxa_evals_*` files are ready for use with the CXA Evals framework for evaluating both persona generation and conversation quality.
 
 ## Module Structure
 
