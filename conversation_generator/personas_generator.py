@@ -26,7 +26,7 @@ def get_config_values():
     Get configuration values, importing only when needed.
     
     Returns:
-        Tuple of (AZURE_OPENAI_API_KEY, AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_API_VERSION, CUSTOMER_DEPLOYMENT)
+        tuple[str, str, str, str]: A tuple containing (api_key, endpoint, api_version, deployment)
     """
     from . import config
     return (
@@ -103,21 +103,24 @@ def extract_personas_from_prompt(
             personas_data = json.loads(response)
         except json.JSONDecodeError:
             # If response contains markdown code blocks, try to extract JSON
-            if "```json" in response:
-                json_start = response.find("```json") + 7
-                json_end = response.find("```", json_start)
-                if json_end == -1:
-                    raise ValueError("Markdown code block not properly closed")
-                json_str = response[json_start:json_end].strip()
-                personas_data = json.loads(json_str)
-            elif "```" in response:
-                json_start = response.find("```") + 3
-                json_end = response.find("```", json_start)
-                if json_end == -1:
-                    raise ValueError("Markdown code block not properly closed")
-                json_str = response[json_start:json_end].strip()
-                personas_data = json.loads(json_str)
-            else:
+            personas_data = None
+            
+            # Try to find and extract JSON from markdown code blocks
+            for prefix in ["```json", "```"]:
+                if prefix in response:
+                    offset = len(prefix)
+                    json_start = response.find(prefix) + offset
+                    json_end = response.find("```", json_start)
+                    if json_end == -1:
+                        raise ValueError("Markdown code block not properly closed")
+                    json_str = response[json_start:json_end].strip()
+                    try:
+                        personas_data = json.loads(json_str)
+                        break
+                    except json.JSONDecodeError:
+                        continue
+            
+            if personas_data is None:
                 raise ValueError(f"LLM response is not valid JSON: {response}")
         
         # Validate the structure
@@ -169,8 +172,8 @@ def save_personas(
     
     # Save metadata including the original prompt
     metadata = {
-        "generated_at": now.isoformat(),  # ISO format timestamp
-        "timestamp": timestamp,  # Compact timestamp format for directory name
+        "generated_at": now.isoformat(),  # ISO 8601 format for precise timestamp
+        "timestamp": timestamp,  # Compact format used in directory name
         "prompt": prompt,
         "num_personas": len(personas_data.get("personas", []))
     }
