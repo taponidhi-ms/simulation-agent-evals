@@ -21,6 +21,10 @@ from typing import Dict, Any
 from .agents import LLMClient
 
 
+# Constants
+MAX_PERSONAS_RESPONSE_TOKENS = 4000  # Allow for longer responses with multiple personas
+
+
 def get_config_values():
     """
     Get configuration values, importing only when needed.
@@ -95,7 +99,7 @@ def extract_personas_from_prompt(
             messages=messages,
             model=model,
             temperature=temperature,
-            max_tokens=4000  # Allow for longer responses with multiple personas
+            max_tokens=MAX_PERSONAS_RESPONSE_TOKENS
         )
         
         # Try to parse the response as JSON
@@ -171,9 +175,12 @@ def save_personas(
         json.dump(personas_data, f, indent=2, ensure_ascii=False)
     
     # Save metadata including the original prompt
+    # We include both timestamp formats:
+    # - generated_at: ISO 8601 format for precise sorting and parsing
+    # - timestamp: Compact format matching the directory name for easy reference
     metadata = {
-        "generated_at": now.isoformat(),  # ISO 8601 format for precise timestamp
-        "timestamp": timestamp,  # Compact format used in directory name
+        "generated_at": now.isoformat(),
+        "timestamp": timestamp,
         "prompt": prompt,
         "num_personas": len(personas_data.get("personas", []))
     }
