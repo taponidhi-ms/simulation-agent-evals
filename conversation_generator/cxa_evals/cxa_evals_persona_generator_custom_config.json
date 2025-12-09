@@ -39,6 +39,12 @@
             "rule_category": "Relevance",
             "rule_description": "Generated personas must be relevant to the scenario described in the prompt: {{persona_prompt}}",
             "scoring_hint": ""
+          },
+          {
+            "rule_name": "persona_distribution",
+            "rule_category": "Accuracy",
+            "rule_description": "Agent response must generate personas with the distribution of tones, complexity levels, and types as requested in the prompt: {{persona_prompt}}. For example, if the prompt asks for 50% calm and 50% angry customers, the generated personas should reflect this distribution.",
+            "scoring_hint": ""
           }
         ]
       }

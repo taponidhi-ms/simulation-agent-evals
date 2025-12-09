@@ -60,8 +60,8 @@ class ConversationGeneratorConfig(BaseModel):
         description="Output directory for generated conversations"
     )
     persona_templates_path: str = Field(
-        default="conversation_generator/personas/examples/personas.json",
-        description="Path to persona templates file"
+        default="conversation_generator/personas/personas.json",
+        description="Path to persona templates file (generated using generate_personas.py)"
     )
     
     @field_validator('azure_openai_endpoint')
