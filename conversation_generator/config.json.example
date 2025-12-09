@@ -10,5 +10,5 @@
   "num_conversations": 10,
   "knowledge_base_path": "conversation_generator/knowledge_base/",
   "output_dir": "conversation_generator/output/",
-  "persona_templates_path": "conversation_generator/personas.json"
+  "persona_templates_path": "conversation_generator/personas/examples/personas.json"
 }
