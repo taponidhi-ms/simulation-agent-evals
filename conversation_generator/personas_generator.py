@@ -15,7 +15,7 @@ import argparse
 import sys
 from pathlib import Path
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 from .agents import LLMClient
 
@@ -168,7 +168,7 @@ def save_personas(
     # Save metadata including the original prompt
     metadata = {
         "generated_at": datetime.now().isoformat(),  # ISO format timestamp
-        "timestamp": timestamp,  # Human-readable timestamp for directory name
+        "timestamp": timestamp,  # Compact timestamp format for directory name
         "prompt": prompt,
         "num_personas": len(personas_data.get("personas", []))
     }
