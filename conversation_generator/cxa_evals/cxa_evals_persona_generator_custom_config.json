@@ -5,6 +5,7 @@
     "source_folder_path": "cxa_evals_personas.json",
     "source_file_type": "json",
     "variable_columns": [
+      "system_prompt",
       "persona_prompt"
     ]
   },
