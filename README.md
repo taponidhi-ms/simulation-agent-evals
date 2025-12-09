@@ -52,6 +52,15 @@ cd ..
 python generate_conversations.py
 ```
 
+**Personas Generator:**
+
+Generate custom personas from natural language prompts:
+```bash
+python generate_personas.py --prompt "Your prompt describing the scenario"
+```
+
+**[📖 View Personas Generator Documentation](conversation_generator/PERSONAS_GENERATOR.md)**
+
 ---
 
 ### 2. Transcript Downloader

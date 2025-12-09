@@ -18,12 +18,22 @@ from datetime import datetime
 from typing import List, Dict, Any
 
 from .agents import LLMClient
-from .config import (
-    AZURE_OPENAI_API_KEY,
-    AZURE_OPENAI_ENDPOINT,
-    AZURE_OPENAI_API_VERSION,
-    CUSTOMER_DEPLOYMENT
-)
+
+
+def get_config_values():
+    """
+    Get configuration values, importing only when needed.
+    
+    Returns:
+        Tuple of (api_key, endpoint, api_version, deployment)
+    """
+    from . import config
+    return (
+        config.AZURE_OPENAI_API_KEY,
+        config.AZURE_OPENAI_ENDPOINT,
+        config.AZURE_OPENAI_API_VERSION,
+        config.CUSTOMER_DEPLOYMENT
+    )
 
 
 SYSTEM_PROMPT = """You are an expert at creating customer personas for customer service simulation scenarios.
@@ -200,10 +210,18 @@ def main():
         "--model",
         type=str,
         default=None,
-        help=f"Model deployment name (default: from config, currently {CUSTOMER_DEPLOYMENT})"
+        help=f"Model deployment name (default: from config)"
     )
     
     args = parser.parse_args()
+    
+    # Get configuration values
+    try:
+        api_key, endpoint, api_version, default_deployment = get_config_values()
+    except Exception as e:
+        print(f"Error loading configuration: {e}", file=sys.stderr)
+        print("Please create a config.json file in the conversation_generator directory.", file=sys.stderr)
+        return 1
     
     # Get the prompt
     if args.prompt:
@@ -213,17 +231,17 @@ def main():
             prompt = f.read().strip()
     
     # Validate configuration
-    if not AZURE_OPENAI_API_KEY:
+    if not api_key:
         print("Error: Azure OpenAI API key is required.", file=sys.stderr)
         print("Set it in conversation_generator/config.json", file=sys.stderr)
         return 1
     
-    if not AZURE_OPENAI_ENDPOINT:
+    if not endpoint:
         print("Error: Azure OpenAI endpoint is required.", file=sys.stderr)
         print("Set it in conversation_generator/config.json", file=sys.stderr)
         return 1
     
-    model = args.model or CUSTOMER_DEPLOYMENT
+    model = args.model or default_deployment
     
     print("=" * 70)
     print("Personas Generator")
@@ -239,9 +257,9 @@ def main():
         # Initialize LLM client
         print("Initializing Azure OpenAI client...")
         llm_client = LLMClient(
-            api_key=AZURE_OPENAI_API_KEY,
-            azure_endpoint=AZURE_OPENAI_ENDPOINT,
-            api_version=AZURE_OPENAI_API_VERSION
+            api_key=api_key,
+            azure_endpoint=endpoint,
+            api_version=api_version
         )
         print("✓ Client initialized")
         print()

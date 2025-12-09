@@ -104,7 +104,7 @@ The following fields are required in `config.json`:
 | `num_conversations` | `10` | Number of conversations to generate |
 | `knowledge_base_path` | `conversation_generator/knowledge_base/` | Path to knowledge base files |
 | `output_dir` | `conversation_generator/output/` | Output directory for conversations |
-| `persona_templates_path` | `conversation_generator/personas.json` | Path to persona templates file |
+| `persona_templates_path` | `conversation_generator/personas/examples/personas.json` | Path to persona templates file |
 
 ## How It Works
 
@@ -133,7 +133,17 @@ Built-in personas include:
 - Billing Discrepancy
 - Highly Satisfied Customer
 
-Personas are defined in `conversation_generator/personas.json` and can be customized.
+Example personas are available in `conversation_generator/personas/examples/personas.json`.
+
+**Generate Custom Personas:**
+
+You can generate custom personas from natural language prompts using the Personas Generator:
+
+```bash
+python generate_personas.py --prompt "Your scenario description"
+```
+
+See [PERSONAS_GENERATOR.md](PERSONAS_GENERATOR.md) for detailed documentation.
 
 ### Knowledge Base
 
