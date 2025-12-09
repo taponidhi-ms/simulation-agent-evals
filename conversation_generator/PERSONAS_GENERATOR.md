@@ -30,8 +30,8 @@ python generate_personas.py --prompt "Simulate 10 conversations between customer
 
 This will create:
 - A timestamped directory: `conversation_generator/personas/personas_YYYYMMDD_HHMMSS/`
-- A `personas.json` file containing the generated personas
-- A `_metadata.json` file with generation metadata
+- A `personas.json` file containing the generated personas and embedded metadata
+- A `_metadata.json` file with generation metadata (for backward compatibility)
 
 ## Prerequisites
 
@@ -68,9 +68,23 @@ The generated `personas.json` file has the following structure:
       "tone": "Expected tone/emotion (e.g., frustrated, polite, confused)",
       "complexity": "simple|medium|complex"
     }
-  ]
+  ],
+  "_metadata": {
+    "generated_at": "2025-12-09T14:06:11.123456",
+    "timestamp": "20251209_140611",
+    "prompt": "Original prompt used to generate personas",
+    "num_personas": 10
+  }
 }
 ```
+
+The `_metadata` field embedded in `personas.json` includes:
+- `generated_at`: ISO 8601 timestamp for precise sorting and parsing
+- `timestamp`: Compact format matching the directory name for easy reference
+- `prompt`: The original natural language prompt used to generate the personas
+- `num_personas`: Count of personas in the file
+
+For backward compatibility, a separate `_metadata.json` file is also created with the same metadata.
 
 ## How It Works
 

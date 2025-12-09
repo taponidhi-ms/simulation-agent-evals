@@ -57,6 +57,17 @@ python generate_conversations.py
 Generate custom personas from natural language prompts:
 ```bash
 python generate_personas.py --prompt "Your prompt describing the scenario"
+# Creates: conversation_generator/personas/personas_YYYYMMDD_HHMMSS/
+#   - personas.json (with embedded _metadata)
+#   - _metadata.json
+```
+
+**Generate conversations from personas:**
+```bash
+# Edit config.json to point to your generated personas:
+#   "persona_templates_path": "conversation_generator/personas/personas_YYYYMMDD_HHMMSS/personas.json"
+python generate_conversations.py
+# Creates: conversation_generator/personas/personas_YYYYMMDD_HHMMSS/conversations_YYYYMMDD_HHMMSS/
 ```
 
 **[📖 View Personas Generator Documentation](conversation_generator/PERSONAS_GENERATOR.md)**
