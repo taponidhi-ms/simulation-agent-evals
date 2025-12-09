@@ -17,7 +17,6 @@ Configuration:
 import sys
 import json
 import os
-import shutil
 from pathlib import Path
 from datetime import datetime
 from typing import List
@@ -31,7 +30,6 @@ from conversation_generator.orchestrator import ConversationOrchestrator
 
 # Import CXA transformer functionality
 from cxa_evals_transformer.transformer import CXAEvalsTransformer
-from cxa_evals_transformer.config_schema import CXAEvalsTransformerConfig
 
 
 # Constants
