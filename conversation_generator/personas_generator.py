@@ -162,7 +162,17 @@ def save_personas(
         
     Returns:
         Path to the saved personas.json file
+        
+    Raises:
+        ValueError: If personas_data is missing required structure
     """
+    # Validate input structure
+    if "personas" not in personas_data:
+        raise ValueError("personas_data must contain 'personas' key")
+    
+    if not isinstance(personas_data["personas"], list):
+        raise ValueError("'personas' must be a list")
+    
     # Create timestamped directory
     now = datetime.now()
     timestamp = now.strftime("%Y%m%d_%H%M%S")

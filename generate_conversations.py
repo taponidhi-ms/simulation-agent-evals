@@ -145,13 +145,19 @@ def main() -> int:
         # save conversations inside that folder as conversations_{timestamp}
         # Otherwise, use the default output directory
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        persona_path = Path(config.PERSONA_TEMPLATES_PATH)
-        persona_parent = persona_path.parent
+        persona_path = Path(config.PERSONA_TEMPLATES_PATH).resolve()
         
-        # Check if parent directory name starts with "personas_" (indicating a generated personas folder)
-        if persona_parent.name.startswith(GENERATED_PERSONAS_PREFIX):
-            # Save conversations inside the personas folder
-            output_dir = persona_parent / f"conversations_{timestamp}"
+        # Search for a directory in the path hierarchy that starts with GENERATED_PERSONAS_PREFIX
+        # This handles both direct parent and nested scenarios
+        personas_folder = None
+        for parent in persona_path.parents:
+            if parent.name.startswith(GENERATED_PERSONAS_PREFIX):
+                personas_folder = parent
+                break
+        
+        if personas_folder:
+            # Save conversations inside the generated personas folder
+            output_dir = personas_folder / f"conversations_{timestamp}"
         else:
             # Use default output directory (old behavior for examples folder)
             output_dir = Path(config.OUTPUT_DIR) / timestamp
