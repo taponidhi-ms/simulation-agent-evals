@@ -65,6 +65,8 @@ IMPORTANT: You must respond ONLY with valid JSON in exactly this format:
   ]
 }
 
+LIMIT: If the user's prompt requests more than 50 personas, return an empty list: {"personas": []}
+
 Do NOT include any other text, explanations, or markdown formatting. Only output the JSON object."""
 
 
@@ -221,14 +223,16 @@ def transform_personas_to_cxa(personas_data: Dict[str, Any], prompt: str) -> Dic
     
     # Create a single-turn conversation entry for persona generation evaluation
     # This follows the CXA Evals single-turn format with agent_prompt and agent_response
-    # The agent_prompt includes the full system prompt that was used to generate personas
+    # The system_prompt contains the LLM instructions, and agent_prompt uses template variables
+    # that will be substituted by the CXA Evals framework
     conversation_entry = {
         "Id": "persona_generation_eval",
-        "agent_prompt": SYSTEM_PROMPT,
-        "agent_response": json.dumps(personas_data, indent=2),
+        "system_prompt": SYSTEM_PROMPT,
+        "agent_prompt": "{system_prompt} Now generate personas with given prompt: {persona_prompt}",
+        "agent_response": json.dumps(personas_data),
         "scenario_name": "PersonaGenerator",
         "persona_prompt": prompt,
-        "num_personas_requested": len(personas_data.get("personas", []))
+        "num_personas_generated": len(personas_data.get("personas", []))
     }
     
     conversations.append(conversation_entry)
