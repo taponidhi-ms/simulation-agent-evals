@@ -2,11 +2,13 @@
 
 ## Executive Summary
 
-This document presents the complete evaluation (evals) process for the SimulationAgent feature in Dynamics 365 Customer Service. The process consists of three main stages:
+This document presents the complete evaluation (evals) process for the SimulationAgent feature in Dynamics 365 Customer Service. The process consists of five main stages:
 
-1. **Persona Generation**: Creating diverse customer personas from natural language prompts
-2. **Conversation Generation**: Generating realistic conversations between customers and CSR agents
-3. **Evaluation**: Assessing the quality of both personas and conversations using custom evaluation rules
+1. **User Input**: Providing natural language prompts describing simulation scenarios
+2. **Persona Generation**: Creating diverse customer personas from natural language prompts
+3. **Conversation Generation**: Generating realistic conversations between customers and CSR agents
+4. **Evaluation**: Assessing the quality of both personas and conversations using custom evaluation rules
+5. **Analysis & Improvement**: Reviewing results and iterating to enhance quality
 
 ---
 
