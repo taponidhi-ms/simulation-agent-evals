@@ -228,11 +228,46 @@ Outputs: `transcript_downloader/output/20241208_123456/`
 └── README.md                    # This file
 ```
 
+## CXA Evals Framework
+
+This repository integrates with the **CXA Evals Framework** for comprehensive quality evaluation. The framework provides three types of evaluators:
+
+### Evaluator Types
+
+1. **DefaultEvaluator (OOB)**: Standard domain-agnostic quality metrics
+   - **Accuracy**: Correctness and coverage against ground truth
+   - **Groundedness**: Strict adherence to provided references
+   - **Completeness**: Full coverage of all essential aspects
+   - **Relevance**: On-topic alignment with user intent
+   - **Noise Sensitivity**: Robustness to input variations
+   - **Conversationality**: Clarity, readability, and natural flow
+
+2. **CustomEvaluator**: Domain-specific metrics tailored to your use case
+   - Define custom metrics (e.g., Legal Compliance, Brand Voice)
+   - Adjust scoring weights for specific quality dimensions
+   - Incorporate domain-specific definitions
+
+3. **GroundnessEvaluator**: Specialized evaluator for source fidelity
+   - Validates strict adherence to authoritative source material
+   - Ensures traceability of every fact to source documents
+   - Ideal for compliance-sensitive workflows
+
+### Evaluation Configurations
+
+This repository includes pre-configured evaluation rules:
+- **Persona Generation Evaluation**: `conversation_generator/cxa_evals/cxa_evals_persona_generator_custom_config.json`
+  - Evaluates persona diversity, completeness, relevance, and distribution
+- **Conversation Generation Evaluation**: `conversation_generator/cxa_evals/cxa_evals_conversation_generator_custom_config.json`
+  - Evaluates persona adherence, goal pursuit, and complexity appropriateness
+
+For a comprehensive overview of the evaluation process, see **[SimulationAgent Evals Process - Product Presentation](EVALS_REVIEW_PRESENTATION.md)**.
+
 ## Documentation
 
 For detailed documentation on each module:
 - **[Conversation Generator Documentation](conversation_generator/README.md)**
 - **[Transcript Downloader Documentation](transcript_downloader/README.md)**
+- **[SimulationAgent Evals Process - Product Presentation](EVALS_REVIEW_PRESENTATION.md)**
 
 ## Output
 
