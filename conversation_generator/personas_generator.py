@@ -65,6 +65,8 @@ IMPORTANT: You must respond ONLY with valid JSON in exactly this format:
   ]
 }
 
+LIMIT: If the user's prompt requests more than 50 personas, return an empty list: {"personas": []}
+
 Do NOT include any other text, explanations, or markdown formatting. Only output the JSON object."""
 
 

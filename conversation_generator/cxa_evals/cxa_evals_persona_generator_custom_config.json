@@ -47,6 +47,12 @@
             "rule_category": "Accuracy",
             "rule_description": "Agent response must generate personas with the distribution of tones, complexity levels, and types as requested in the prompt: {{persona_prompt}}. For example, if the prompt asks for 50% calm and 50% angry customers, the generated personas should reflect this distribution.",
             "scoring_hint": ""
+          },
+          {
+            "rule_name": "persona_count_accuracy",
+            "rule_category": "Accuracy",
+            "rule_description": "The number of personas generated ({{num_personas_generated}}) must match the number of personas requested in the prompt: {{persona_prompt}}. If the prompt requests more than 50 personas, the agent should return an empty list.",
+            "scoring_hint": ""
           }
         ]
       }
