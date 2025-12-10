@@ -6,7 +6,8 @@
     "source_file_type": "json",
     "variable_columns": [
       "system_prompt",
-      "persona_prompt"
+      "persona_prompt",
+      "num_personas_generated"
     ]
   },
   "eval_config": {

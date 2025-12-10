@@ -227,7 +227,7 @@ def transform_personas_to_cxa(personas_data: Dict[str, Any], prompt: str) -> Dic
         "Id": "persona_generation_eval",
         "system_prompt": SYSTEM_PROMPT,
         "agent_prompt": "{system_prompt} Now generate personas with given prompt: {persona_prompt}",
-        "agent_response": json.dumps(personas_data, indent=2),
+        "agent_response": json.dumps(personas_data),
         "scenario_name": "PersonaGenerator",
         "persona_prompt": prompt,
         "num_personas_generated": len(personas_data.get("personas", []))
