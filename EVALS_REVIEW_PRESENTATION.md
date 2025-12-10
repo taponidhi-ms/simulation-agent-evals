@@ -170,8 +170,8 @@ disappointed. They have varying kinds of issues normally faced by customers of
       "tone": "disappointed and upset",
       "complexity": "complex"
     }
-    // ... 8 more personas
   ],
+  "_note": "... 8 more personas would be included here in actual output",
   "_metadata": {
     "generated_at": "2025-12-09T14:06:11.123456",
     "timestamp": "20251209_140611",
