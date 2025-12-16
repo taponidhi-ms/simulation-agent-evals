@@ -40,11 +40,9 @@ This will create:
    cp conversation_generator/config.json.example conversation_generator/config.json
    ```
 
-2. **Azure AI Project Setup**:
-   - Configure `azure_ai_project_endpoint` in `config.json`
-   - Authenticate with Azure: `az login`
-   
-   See the [main README](README.md) for details on AAD authentication with `DefaultAzureCredential`.
+2. **Azure OpenAI Credentials**: Edit `config.json` and add:
+   - `azure_openai_api_key`: Your Azure OpenAI API key
+   - `azure_openai_endpoint`: Your Azure OpenAI endpoint URL
 
 ## Command Line Options
 

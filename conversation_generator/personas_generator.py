@@ -34,11 +34,13 @@ def get_config_values():
     Get configuration values, importing only when needed.
     
     Returns:
-        tuple: A tuple containing (ai_project_endpoint, deployment)
+        tuple[str, str, str, str]: A tuple containing (api_key, endpoint, api_version, deployment)
     """
     from . import config
     return (
-        config.AZURE_AI_PROJECT_ENDPOINT,
+        config.AZURE_OPENAI_API_KEY,
+        config.AZURE_OPENAI_ENDPOINT,
+        config.AZURE_OPENAI_API_VERSION,
         config.CUSTOMER_DEPLOYMENT
     )
 
@@ -305,10 +307,10 @@ def main():
     
     # Get configuration values
     try:
-        ai_project_endpoint, default_deployment = get_config_values()
+        api_key, endpoint, api_version, default_deployment = get_config_values()
     except Exception as e:
-        logger.error(f"Error loading configuration: {e}")
-        logger.error("Please create a config.json file in the conversation_generator directory.")
+        print(f"Error loading configuration: {e}", file=sys.stderr)
+        print("Please create a config.json file in the conversation_generator directory.", file=sys.stderr)
         return 1
     
     # Get the prompt
@@ -328,30 +330,36 @@ def main():
             return 1
     
     # Validate configuration
-    if not ai_project_endpoint:
-        logger.error("Error: Azure AI Project endpoint is required for AAD authentication.")
-        logger.error("Set azure_ai_project_endpoint in conversation_generator/config.json")
+    if not api_key:
+        print("Error: Azure OpenAI API key is required.", file=sys.stderr)
+        print("Set it in conversation_generator/config.json", file=sys.stderr)
+        return 1
+    
+    if not endpoint:
+        print("Error: Azure OpenAI endpoint is required.", file=sys.stderr)
+        print("Set it in conversation_generator/config.json", file=sys.stderr)
         return 1
     
     model = args.model or default_deployment
     
-    logger.info("=" * 70)
-    logger.info("Personas Generator")
-    logger.info("=" * 70)
-    
-    # Display authentication mode
-    logger.info(f"Azure AI Project Endpoint: {ai_project_endpoint}")
-    logger.info("Authentication: Azure Active Directory (AAD)")
-    logger.info(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
-    logger.info(f"Model: {model}")
-    logger.info(f"Temperature: {args.temperature}")
+    print("=" * 70)
+    print("Personas Generator")
+    print("=" * 70)
+    print()
+    print(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
+    print(f"Model: {model}")
+    print(f"Temperature: {args.temperature}")
     
     try:
         # Initialize LLM client
+        print("Initializing Azure OpenAI client...")
         llm_client = LLMClient(
-            azure_ai_project_endpoint=ai_project_endpoint
+            api_key=api_key,
+            azure_endpoint=endpoint,
+            api_version=api_version
         )
-        
+        print("✓ Client initialized")
+        print()
         # Extract personas from prompt
         logger.info("Generating personas from prompt...")
         personas_data = extract_personas_from_prompt(
