@@ -28,6 +28,9 @@ from .logger import get_logger, log_llm_interaction
 # Set up logger for this module
 logger = get_logger(__name__)
 
+# Default API version for Azure OpenAI
+DEFAULT_API_VERSION = "2024-02-01"
+
 
 class LLMClient:
     """Wrapper for Azure OpenAI client supporting both AAD and API key authentication."""
@@ -36,7 +39,7 @@ class LLMClient:
                  azure_ai_project_endpoint: Optional[str] = None,
                  azure_openai_api_key: Optional[str] = None,
                  azure_openai_endpoint: Optional[str] = None,
-                 api_version: str = "2024-02-01"):
+                 api_version: str = DEFAULT_API_VERSION):
         """
         Initialize Azure OpenAI LLM client with AAD or API key authentication.
         

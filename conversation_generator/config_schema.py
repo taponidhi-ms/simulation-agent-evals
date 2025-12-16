@@ -117,12 +117,6 @@ class ConversationGeneratorConfig(BaseModel):
                 'Please configure only one authentication method'
             )
         
-        if has_api_key and self.azure_openai_api_key is None:
-            raise ValueError('azure_openai_api_key is required when using API key authentication')
-        
-        if has_api_key and self.azure_openai_endpoint is None:
-            raise ValueError('azure_openai_endpoint is required when using API key authentication')
-        
         return self
     
     class Config:
