@@ -34,7 +34,7 @@ def get_config_values():
     Get configuration values, importing only when needed.
     
     Returns:
-        tuple: A tuple containing (azure_openai_endpoint, api_version, deployment)
+        tuple: A tuple containing (azure_openai_endpoint, api_version, customer_deployment)
     """
     from . import config
     return (
