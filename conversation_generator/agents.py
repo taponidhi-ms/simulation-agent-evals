@@ -15,6 +15,11 @@ except ImportError:
     DefaultAzureCredential = None
     AIProjectClient = None
 
+try:
+    from openai import AzureOpenAI
+except ImportError:
+    AzureOpenAI = None
+
 from .models import Message, Role, PersonaTemplate
 from .knowledge_base import KnowledgeBase
 from . import config
@@ -25,22 +30,57 @@ logger = get_logger(__name__)
 
 
 class LLMClient:
-    """Wrapper for Azure OpenAI client with AAD authentication."""
+    """Wrapper for Azure OpenAI client supporting both AAD and API key authentication."""
     
-    def __init__(self, azure_ai_project_endpoint: str):
+    def __init__(self, 
+                 azure_ai_project_endpoint: Optional[str] = None,
+                 azure_openai_api_key: Optional[str] = None,
+                 azure_openai_endpoint: Optional[str] = None,
+                 api_version: str = "2024-02-01"):
         """
-        Initialize Azure OpenAI LLM client with AAD authentication.
+        Initialize Azure OpenAI LLM client with AAD or API key authentication.
         
-        Uses DefaultAzureCredential for authentication, which supports multiple
-        authentication methods including Azure CLI, Managed Identity, and environment variables.
+        Supports two authentication methods:
+        1. AAD (Azure Active Directory): Uses DefaultAzureCredential via AIProjectClient
+        2. API Key: Uses direct API key authentication
         
         Args:
-            azure_ai_project_endpoint: Azure AI Project endpoint URL
+            azure_ai_project_endpoint: Azure AI Project endpoint URL for AAD auth
                 (e.g., https://your-resource.services.ai.azure.com/api/projects/your-project)
+            azure_openai_api_key: Azure OpenAI API key for API key auth
+            azure_openai_endpoint: Azure OpenAI endpoint URL for API key auth
+                (e.g., https://your-resource.openai.azure.com/)
+            api_version: Azure OpenAI API version
             
         Raises:
-            ImportError: If required Azure packages are not installed
+            ImportError: If required packages are not installed
+            ValueError: If authentication configuration is invalid
         """
+        # Determine authentication method
+        has_aad = azure_ai_project_endpoint is not None
+        has_api_key = (azure_openai_api_key is not None and 
+                       azure_openai_endpoint is not None)
+        
+        if not has_aad and not has_api_key:
+            raise ValueError(
+                "Either AAD authentication (azure_ai_project_endpoint) or "
+                "API key authentication (azure_openai_api_key + azure_openai_endpoint) must be provided"
+            )
+        
+        if has_aad and has_api_key:
+            raise ValueError(
+                "Cannot use both AAD and API key authentication. "
+                "Please provide only one authentication method"
+            )
+        
+        # Initialize client based on authentication method
+        if has_aad:
+            self._init_aad_client(azure_ai_project_endpoint)
+        else:
+            self._init_api_key_client(azure_openai_api_key, azure_openai_endpoint, api_version)
+    
+    def _init_aad_client(self, azure_ai_project_endpoint: str) -> None:
+        """Initialize client with AAD authentication."""
         if DefaultAzureCredential is None or AIProjectClient is None:
             raise ImportError(
                 "Azure AI Projects packages are required for AAD authentication. "
@@ -54,7 +94,23 @@ class LLMClient:
             credential=credential
         )
         self.client = project_client.get_openai_client()
-        logger.info("✓ Azure OpenAI client initialized successfully")
+        logger.info("✓ Azure OpenAI client initialized successfully (AAD authentication)")
+    
+    def _init_api_key_client(self, api_key: str, endpoint: str, api_version: str) -> None:
+        """Initialize client with API key authentication."""
+        if AzureOpenAI is None:
+            raise ImportError(
+                "OpenAI package is required for API key authentication. "
+                "Install with: pip install openai"
+            )
+        
+        logger.info("Initializing Azure OpenAI client with API key authentication...")
+        self.client = AzureOpenAI(
+            api_key=api_key,
+            azure_endpoint=endpoint,
+            api_version=api_version
+        )
+        logger.info("✓ Azure OpenAI client initialized successfully (API key authentication)")
     
     def generate(self, messages: List[Dict[str, str]], model: str,
                  temperature: float = 0.7, max_tokens: int = 500) -> str:

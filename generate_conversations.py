@@ -72,10 +72,14 @@ def validate_config() -> None:
     Raises:
         ValueError: If required configuration is missing
     """
-    if not config.AZURE_AI_PROJECT_ENDPOINT:
+    has_aad = config.AZURE_AI_PROJECT_ENDPOINT is not None
+    has_api_key = (config.AZURE_OPENAI_API_KEY is not None and 
+                   config.AZURE_OPENAI_ENDPOINT is not None)
+    
+    if not has_aad and not has_api_key:
         raise ValueError(
-            "Azure AI Project endpoint is required for AAD authentication. "
-            "Set azure_ai_project_endpoint in config.json"
+            "Either AAD authentication (azure_ai_project_endpoint) or "
+            "API key authentication (azure_openai_api_key + azure_openai_endpoint) must be configured in config.json"
         )
 
 
@@ -95,8 +99,13 @@ def main() -> int:
         validate_config()
         
         # Display configuration info
-        logger.info(f"Azure AI Project Endpoint: {config.AZURE_AI_PROJECT_ENDPOINT}")
-        logger.info("Authentication: Azure Active Directory (AAD)")
+        if config.AZURE_AI_PROJECT_ENDPOINT:
+            logger.info(f"Azure AI Project Endpoint: {config.AZURE_AI_PROJECT_ENDPOINT}")
+            logger.info("Authentication: Azure Active Directory (AAD)")
+        else:
+            logger.info(f"Azure OpenAI Endpoint: {config.AZURE_OPENAI_ENDPOINT}")
+            logger.info("Authentication: API Key")
+        
         logger.info(f"Customer Deployment: {config.CUSTOMER_DEPLOYMENT}")
         logger.info(f"CSR Deployment: {config.CSR_DEPLOYMENT}")
         logger.info(f"Max Turns: {config.MAX_TURNS}")
@@ -108,7 +117,10 @@ def main() -> int:
         logger.info("-" * 50)
         
         llm_client = LLMClient(
-            azure_ai_project_endpoint=config.AZURE_AI_PROJECT_ENDPOINT
+            azure_ai_project_endpoint=config.AZURE_AI_PROJECT_ENDPOINT,
+            azure_openai_api_key=config.AZURE_OPENAI_API_KEY,
+            azure_openai_endpoint=config.AZURE_OPENAI_ENDPOINT,
+            api_version=config.AZURE_OPENAI_API_VERSION
         )
         
         # Load knowledge base

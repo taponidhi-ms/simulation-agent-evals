@@ -59,6 +59,8 @@ _config = load_config()
 
 # Export config values as module-level variables for backward compatibility
 AZURE_AI_PROJECT_ENDPOINT = _config.azure_ai_project_endpoint
+AZURE_OPENAI_API_KEY = _config.azure_openai_api_key
+AZURE_OPENAI_ENDPOINT = _config.azure_openai_endpoint
 AZURE_OPENAI_API_VERSION = _config.azure_openai_api_version
 CUSTOMER_DEPLOYMENT = _config.customer_deployment
 CSR_DEPLOYMENT = _config.csr_deployment
