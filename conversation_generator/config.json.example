@@ -1,5 +1,12 @@
 {
+  "_comment": "Authentication: Choose ONE of the following authentication methods:",
+  "_comment_aad": "Option 1: AAD Authentication - Recommended for Azure AI Foundry projects",
   "azure_ai_project_endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project",
+  
+  "_comment_api_key": "Option 2: API Key Authentication - For direct Azure OpenAI access",
+  "_azure_openai_api_key": "your-azure-openai-api-key",
+  "_azure_openai_endpoint": "https://your-resource.openai.azure.com/",
+  
   "azure_openai_api_version": "2024-02-01",
   "customer_deployment": "gpt-4o-mini",
   "csr_deployment": "gpt-4o-mini",
