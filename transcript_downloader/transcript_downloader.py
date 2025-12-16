@@ -11,6 +11,15 @@ from .dataverse_client import DataverseClient
 from .models import Annotation, Conversation, DownloadSummary, Transcript, TranscriptMessage
 from .validators import escape_xml_value, is_safe_path_component, validate_guid
 
+# Import logging from conversation_generator since it's in the parent directory
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from conversation_generator.logger import get_logger
+
+# Set up logger for this module
+logger = get_logger(__name__)
+
 
 class TranscriptDownloader:
     """Downloads and saves transcripts from Dynamics 365 conversations."""
@@ -100,9 +109,9 @@ class TranscriptDownloader:
         </fetch>
         """
 
-        print(f"Fetching conversations from workstream {self.workstream_id}...")
-        print(f"Looking for closed conversations created in the last {self.days_to_fetch} days...")
-        print(f"Limiting query to {self.max_conversations} conversations...")
+        logger.info(f"Fetching conversations from workstream {self.workstream_id}...")
+        logger.info(f"Looking for closed conversations created in the last {self.days_to_fetch} days...")
+        logger.info(f"Limiting query to {self.max_conversations} conversations...")
 
         raw_conversations = self.client.execute_fetch_xml(
             entity_name="msdyn_ocliveworkitem",
@@ -386,7 +395,7 @@ class TranscriptDownloader:
             return summary
 
         # Batch fetch all transcripts for all conversations (2nd query - optimized)
-        print(f"\nFetching transcripts for {len(conversations)} conversations...")
+        logger.info(f"Fetching transcripts for {len(conversations)} conversations...")
         conversation_ids = [c.id for c in conversations]
         transcripts_by_conversation = self.get_all_transcripts_for_conversations(conversation_ids)
         
