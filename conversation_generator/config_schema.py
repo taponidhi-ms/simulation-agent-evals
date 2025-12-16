@@ -12,10 +12,10 @@ from typing import Optional
 class ConversationGeneratorConfig(BaseModel):
     """Configuration schema for conversation generator."""
     
-    # Azure AI Projects Configuration (AAD Authentication)
-    azure_ai_project_endpoint: str = Field(
+    # Azure OpenAI Configuration (AAD Authentication)
+    azure_openai_endpoint: str = Field(
         ...,
-        description="Azure AI Project endpoint URL for AAD authentication (e.g., https://your-resource.services.ai.azure.com/api/projects/your-project)"
+        description="Azure OpenAI resource endpoint URL for AAD authentication (e.g., https://your-resource.openai.azure.com/)"
     )
     
     # API Version (kept for compatibility with OpenAI client)
@@ -68,12 +68,12 @@ class ConversationGeneratorConfig(BaseModel):
         description="Path to persona templates file (generated using generate_personas.py)"
     )
     
-    @field_validator('azure_ai_project_endpoint')
+    @field_validator('azure_openai_endpoint')
     @classmethod
-    def validate_ai_project_endpoint(cls, v: str) -> str:
-        """Validate Azure AI Project endpoint URL."""
+    def validate_openai_endpoint(cls, v: str) -> str:
+        """Validate Azure OpenAI endpoint URL."""
         if not v.startswith('https://'):
-            raise ValueError('Azure AI Project endpoint must start with https://')
+            raise ValueError('Azure OpenAI endpoint must start with https://')
         return v.rstrip('/')
     
     class Config:

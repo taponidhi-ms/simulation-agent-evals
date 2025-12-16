@@ -159,7 +159,7 @@ The Conversation Generator uses **AAD (Azure Active Directory) authentication** 
 **Configuration:**
 ```json
 {
-  "azure_ai_project_endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project"
+  "azure_openai_endpoint": "https://your-resource.openai.azure.com/"
 }
 ```
 

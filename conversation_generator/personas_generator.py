@@ -34,11 +34,12 @@ def get_config_values():
     Get configuration values, importing only when needed.
     
     Returns:
-        tuple: A tuple containing (ai_project_endpoint, deployment)
+        tuple: A tuple containing (openai_endpoint, api_version, deployment)
     """
     from . import config
     return (
-        config.AZURE_AI_PROJECT_ENDPOINT,
+        config.AZURE_OPENAI_ENDPOINT,
+        config.AZURE_OPENAI_API_VERSION,
         config.CUSTOMER_DEPLOYMENT
     )
 
@@ -305,7 +306,7 @@ def main():
     
     # Get configuration values
     try:
-        ai_project_endpoint, default_deployment = get_config_values()
+        openai_endpoint, api_version, default_deployment = get_config_values()
     except Exception as e:
         logger.error(f"Error loading configuration: {e}")
         logger.error("Please create a config.json file in the conversation_generator directory.")
@@ -328,9 +329,9 @@ def main():
             return 1
     
     # Validate configuration
-    if not ai_project_endpoint:
-        logger.error("Error: Azure AI Project endpoint is required for AAD authentication.")
-        logger.error("Set azure_ai_project_endpoint in conversation_generator/config.json")
+    if not openai_endpoint:
+        logger.error("Error: Azure OpenAI endpoint is required for AAD authentication.")
+        logger.error("Set azure_openai_endpoint in conversation_generator/config.json")
         return 1
     
     model = args.model or default_deployment
@@ -340,7 +341,7 @@ def main():
     logger.info("=" * 70)
     
     # Display authentication mode
-    logger.info(f"Azure AI Project Endpoint: {ai_project_endpoint}")
+    logger.info(f"Azure OpenAI Endpoint: {openai_endpoint}")
     logger.info("Authentication: Azure Active Directory (AAD)")
     logger.info(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
     logger.info(f"Model: {model}")
@@ -349,7 +350,8 @@ def main():
     try:
         # Initialize LLM client
         llm_client = LLMClient(
-            azure_ai_project_endpoint=ai_project_endpoint
+            azure_openai_endpoint=openai_endpoint,
+            api_version=api_version
         )
         
         # Extract personas from prompt

@@ -81,8 +81,8 @@ cd conversation_generator
 # Copy the example config file
 cp config.json.example config.json
 
-# Edit config.json with your Azure AI Project endpoint
-# "azure_ai_project_endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project"
+# Edit config.json with your Azure OpenAI endpoint
+# "azure_openai_endpoint": "https://your-resource.openai.azure.com/"
 
 # Authenticate with Azure
 cd ..
@@ -98,11 +98,11 @@ The Conversation Generator uses **AAD (Azure Active Directory) authentication** 
 
 ### Required Configuration
 
-Set the Azure AI Project endpoint in `config.json`:
+Set the Azure OpenAI endpoint in `config.json`:
 
 | Field | Description |
 |-------|-------------|
-| `azure_ai_project_endpoint` | Azure AI Project endpoint URL (e.g., https://your-resource.services.ai.azure.com/api/projects/your-project) |
+| `azure_openai_endpoint` | Azure OpenAI resource endpoint URL (e.g., https://your-resource.openai.azure.com/) |
 
 ### Authentication Setup
 
