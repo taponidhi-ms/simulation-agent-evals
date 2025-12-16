@@ -58,9 +58,7 @@ python generate_conversations.py
 ## Prerequisites
 
 - Python 3.9 or higher
-- **Choose one authentication method:**
-  - **Azure AI Foundry project access** (recommended for AAD authentication), OR
-  - **Azure OpenAI access with API keys** (legacy)
+- Azure AI Foundry project access with AAD authentication
 
 ## Installation
 
@@ -83,66 +81,44 @@ cd conversation_generator
 # Copy the example config file
 cp config.json.example config.json
 
-# Edit config.json with your authentication settings
-# See Authentication section below for details
+# Edit config.json with your Azure AI Project endpoint
+# "azure_ai_project_endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project"
+
+# Authenticate with Azure
+cd ..
+az login
 
 # Run the generator (from repository root)
-cd ..
 python generate_conversations.py
 ```
 
 ## Authentication
 
-The Conversation Generator supports two authentication methods:
+The Conversation Generator uses **AAD (Azure Active Directory) authentication** via `DefaultAzureCredential`.
 
-### Option 1: AAD Authentication (Recommended)
+### Required Configuration
 
-Uses Azure Active Directory authentication via `DefaultAzureCredential`. This is the recommended approach for Azure AI Foundry projects.
+Set the Azure AI Project endpoint in `config.json`:
 
-**Required configuration:**
-```json
-{
-  "azure_ai_project_endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project",
-  "customer_deployment": "gpt-4o-mini",
-  "csr_deployment": "gpt-4o-mini"
-}
-```
-
-**Prerequisites:**
-- Azure AI Foundry project setup
-- Valid Azure credentials (can be set via `az login` or environment variables)
-- Packages: `azure-ai-projects`, `azure-identity` (included in requirements.txt)
-
-### Option 2: API Key Authentication (Legacy)
-
-Uses Azure OpenAI API keys for authentication.
-
-**Required configuration:**
-```json
-{
-  "azure_openai_api_key": "your-key-here",
-  "azure_openai_endpoint": "https://your-resource.cognitiveservices.azure.com",
-  "customer_deployment": "gpt-4o-mini",
-  "csr_deployment": "gpt-4o-mini"
-}
-```
-
-See `config.json.example.apikey` for a complete example.
-
-## Required Configuration
-
-Choose **ONE** of the following authentication configurations:
-
-### For AAD Authentication:
 | Field | Description |
 |-------|-------------|
 | `azure_ai_project_endpoint` | Azure AI Project endpoint URL (e.g., https://your-resource.services.ai.azure.com/api/projects/your-project) |
 
-### For API Key Authentication:
-| Field | Description |
-|-------|-------------|
-| `azure_openai_api_key` | Your Azure OpenAI API key |
-| `azure_openai_endpoint` | Your Azure OpenAI endpoint URL (e.g., https://your-resource.cognitiveservices.azure.com/) |
+### Authentication Setup
+
+`DefaultAzureCredential` supports multiple authentication methods (in order of precedence):
+1. **Environment variables** - Set `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_CLIENT_SECRET`
+2. **Managed Identity** - Automatically used when running in Azure (App Service, Functions, etc.)
+3. **Azure CLI** - Run `az login` (recommended for local development)
+4. **Azure PowerShell** - Run `Connect-AzAccount`
+5. **Interactive browser** - Opens browser for authentication if other methods fail
+
+For local development, use Azure CLI:
+```bash
+az login
+```
+
+For more details, see [Azure Identity documentation](https://learn.microsoft.com/python/api/azure-identity/azure.identity.defaultazurecredential).
 
 ## Optional Configuration
 

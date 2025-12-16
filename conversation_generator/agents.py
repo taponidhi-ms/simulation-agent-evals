@@ -9,11 +9,6 @@ from typing import List, Dict, Any, Optional
 import json
 
 try:
-    from openai import AzureOpenAI
-except ImportError:
-    AzureOpenAI = None
-
-try:
     from azure.identity import DefaultAzureCredential
     from azure.ai.projects import AIProjectClient
 except ImportError:
@@ -26,73 +21,36 @@ from . import config
 
 
 class LLMClient:
-    """Wrapper for Azure OpenAI client with support for API Key and AAD authentication."""
+    """Wrapper for Azure OpenAI client with AAD authentication."""
     
-    def __init__(
-        self, 
-        api_key: Optional[str] = None, 
-        azure_endpoint: Optional[str] = None, 
-        api_version: str = "2024-02-01",
-        azure_ai_project_endpoint: Optional[str] = None
-    ):
+    def __init__(self, azure_ai_project_endpoint: str):
         """
-        Initialize Azure OpenAI LLM client with either API key or AAD authentication.
+        Initialize Azure OpenAI LLM client with AAD authentication.
         
-        Authentication modes:
-        1. API Key mode (legacy): Provide api_key and azure_endpoint
-        2. AAD mode (recommended): Provide azure_ai_project_endpoint
+        Uses DefaultAzureCredential for authentication, which supports multiple
+        authentication methods including Azure CLI, Managed Identity, and environment variables.
         
         Args:
-            api_key: API key for Azure OpenAI (optional if using AAD)
-            azure_endpoint: Azure OpenAI endpoint URL (optional if using AAD)
-            api_version: API version (default: 2024-02-01)
-            azure_ai_project_endpoint: Azure AI Project endpoint for AAD authentication
+            azure_ai_project_endpoint: Azure AI Project endpoint URL
+                (e.g., https://your-resource.services.ai.azure.com/api/projects/your-project)
             
         Raises:
-            ImportError: If required packages are not installed
-            ValueError: If neither authentication mode is properly configured
+            ImportError: If required Azure packages are not installed
         """
-        if AzureOpenAI is None:
+        if DefaultAzureCredential is None or AIProjectClient is None:
             raise ImportError(
-                "openai package is required. Install with: pip install openai"
+                "Azure AI Projects packages are required for AAD authentication. "
+                "Install with: pip install azure-ai-projects azure-identity"
             )
         
-        # Determine authentication mode
-        has_api_key = bool(api_key and azure_endpoint)
-        has_aad = bool(azure_ai_project_endpoint)
-        
-        if not has_api_key and not has_aad:
-            raise ValueError(
-                "Either API key authentication (api_key + azure_endpoint) or "
-                "AAD authentication (azure_ai_project_endpoint) must be provided"
-            )
-        
-        # AAD authentication mode (recommended)
-        if has_aad:
-            if DefaultAzureCredential is None or AIProjectClient is None:
-                raise ImportError(
-                    "Azure AI Projects packages are required for AAD authentication. "
-                    "Install with: pip install azure-ai-projects azure-identity"
-                )
-            
-            print("Using AAD authentication with DefaultAzureCredential")
-            credential = DefaultAzureCredential()
-            project_client = AIProjectClient(
-                endpoint=azure_ai_project_endpoint,
-                credential=credential
-            )
-            self.client = project_client.get_openai_client()
-            self._auth_mode = "aad"
-        
-        # API Key authentication mode (legacy)
-        else:
-            print("Using API key authentication")
-            self.client = AzureOpenAI(
-                api_key=api_key,
-                api_version=api_version,
-                azure_endpoint=azure_endpoint
-            )
-            self._auth_mode = "api_key"
+        print("Initializing Azure OpenAI client with AAD authentication...")
+        credential = DefaultAzureCredential()
+        project_client = AIProjectClient(
+            endpoint=azure_ai_project_endpoint,
+            credential=credential
+        )
+        self.client = project_client.get_openai_client()
+        print("✓ Azure OpenAI client initialized successfully")
     
     def generate(self, messages: List[Dict[str, str]], model: str,
                  temperature: float = 0.7, max_tokens: int = 500) -> str:

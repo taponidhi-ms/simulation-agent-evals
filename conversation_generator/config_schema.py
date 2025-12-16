@@ -5,31 +5,23 @@ This module defines the Pydantic model for validating conversation generator
 configuration loaded from config.json.
 """
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 
 
 class ConversationGeneratorConfig(BaseModel):
     """Configuration schema for conversation generator."""
     
-    # Azure OpenAI Configuration (API Key mode - legacy)
-    azure_openai_api_key: Optional[str] = Field(
-        default=None, 
-        description="Azure OpenAI API key (optional if using AAD authentication)"
+    # Azure AI Projects Configuration (AAD Authentication)
+    azure_ai_project_endpoint: str = Field(
+        ...,
+        description="Azure AI Project endpoint URL for AAD authentication (e.g., https://your-resource.services.ai.azure.com/api/projects/your-project)"
     )
-    azure_openai_endpoint: Optional[str] = Field(
-        default=None,
-        description="Azure OpenAI endpoint URL (optional if using AAD authentication)"
-    )
+    
+    # API Version (kept for compatibility with OpenAI client)
     azure_openai_api_version: str = Field(
         default="2024-02-01",
         description="Azure OpenAI API version"
-    )
-    
-    # Azure AI Projects Configuration (AAD mode - recommended)
-    azure_ai_project_endpoint: Optional[str] = Field(
-        default=None,
-        description="Azure AI Project endpoint URL for AAD authentication (e.g., https://your-resource.services.ai.azure.com/api/projects/your-project)"
     )
     
     # Deployment names
@@ -76,35 +68,13 @@ class ConversationGeneratorConfig(BaseModel):
         description="Path to persona templates file (generated using generate_personas.py)"
     )
     
-    @model_validator(mode='after')
-    def validate_authentication_mode(self) -> 'ConversationGeneratorConfig':
-        """Validate that either API key or AAD authentication is configured."""
-        has_api_key = bool(self.azure_openai_api_key and self.azure_openai_endpoint)
-        has_aad = bool(self.azure_ai_project_endpoint)
-        
-        if not has_api_key and not has_aad:
-            raise ValueError(
-                'Either API key authentication (azure_openai_api_key + azure_openai_endpoint) '
-                'or AAD authentication (azure_ai_project_endpoint) must be configured'
-            )
-        
-        return self
-    
-    @field_validator('azure_openai_endpoint')
-    @classmethod
-    def validate_endpoint(cls, v: Optional[str]) -> Optional[str]:
-        """Validate Azure OpenAI endpoint URL."""
-        if v and not v.startswith('https://'):
-            raise ValueError('Azure OpenAI endpoint must start with https://')
-        return v.rstrip('/') if v else v
-    
     @field_validator('azure_ai_project_endpoint')
     @classmethod
-    def validate_ai_project_endpoint(cls, v: Optional[str]) -> Optional[str]:
+    def validate_ai_project_endpoint(cls, v: str) -> str:
         """Validate Azure AI Project endpoint URL."""
-        if v and not v.startswith('https://'):
+        if not v.startswith('https://'):
             raise ValueError('Azure AI Project endpoint must start with https://')
-        return v
+        return v.rstrip('/')
     
     class Config:
         """Pydantic model configuration."""
