@@ -12,6 +12,10 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 
 from .models import CXAConversation, CXAMessage
+from ..logger import get_logger
+
+# Set up logger for this module
+logger = get_logger(__name__)
 
 
 class CXAEvalsTransformer:
@@ -157,12 +161,14 @@ class CXAEvalsTransformer:
                 cxa_conv = self.transform_conversation(conversation_data)
                 cxa_conversations.append(cxa_conv)
             except Exception as e:
-                print(f"Warning: Failed to transform {file_path}: {e}")
+                logger.warning(f"Failed to transform {file_path}: {e}")
                 continue
         
         # Save transformed conversations
         output_path = Path(output_file)
         output_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        logger.debug(f"Saving {len(cxa_conversations)} transformed conversations to {output_path}")
         
         output_data = {
             "conversations": [conv.to_dict() for conv in cxa_conversations]

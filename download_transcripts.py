@@ -20,6 +20,10 @@ from transcript_downloader import config
 from transcript_downloader.auth import DynamicsAuthenticator
 from transcript_downloader.dataverse_client import DataverseClient
 from transcript_downloader.transcript_downloader import TranscriptDownloader
+from conversation_generator.logger import get_logger
+
+# Set up logger for this module
+logger = get_logger(__name__)
 
 
 def validate_required_config() -> None:
@@ -67,43 +71,39 @@ def main() -> int:
     Returns:
         Exit code (0 for success, 1 for failure).
     """
-    print("=" * 60)
-    print("Dynamics 365 Transcript Downloader")
-    print("=" * 60)
-    print()
+    logger.info("=" * 60)
+    logger.info("Dynamics 365 Transcript Downloader")
+    logger.info("=" * 60)
 
     try:
         # Validate required configuration
         validate_required_config()
 
-        print(f"Organization URL: {config.ORGANIZATION_URL}")
-        print(f"Workstream ID: {config.WORKSTREAM_ID}")
-        print(f"Days to fetch: {config.DAYS_TO_FETCH}")
-        print(f"Max conversations: {config.MAX_CONVERSATIONS}")
-        print()
+        logger.info(f"Organization URL: {config.ORGANIZATION_URL}")
+        logger.info(f"Workstream ID: {config.WORKSTREAM_ID}")
+        logger.info(f"Days to fetch: {config.DAYS_TO_FETCH}")
+        logger.info(f"Max conversations: {config.MAX_CONVERSATIONS}")
 
         # Step 1: Authenticate
-        print("-" * 40)
-        print("Step 1: Authentication")
-        print("-" * 40)
+        logger.info("-" * 40)
+        logger.info("Step 1: Authentication")
+        logger.info("-" * 40)
 
         authenticator = DynamicsAuthenticator()
         access_token = authenticator.get_access_token()
 
         # Step 2: Create Dataverse client
-        print()
-        print("-" * 40)
-        print("Step 2: Connecting to Dataverse")
-        print("-" * 40)
+        logger.info("-" * 40)
+        logger.info("Step 2: Connecting to Dataverse")
+        logger.info("-" * 40)
 
         client = DataverseClient(access_token=access_token)
-        print("Connected successfully.")
+        logger.info("Connected successfully.")
 
         # Step 3: Download transcripts
-        print()
-        print("-" * 40)
-        print("Step 3: Downloading Transcripts")
-        print("-" * 40)
+        logger.info("-" * 40)
+        logger.info("Step 3: Downloading Transcripts")
+        logger.info("-" * 40)
 
         downloader = TranscriptDownloader(
             client=client,
@@ -113,25 +113,24 @@ def main() -> int:
         summary = downloader.download_all_transcripts()
 
         # Print summary
-        print()
-        print("=" * 60)
-        print("Summary")
-        print("=" * 60)
-        print(f"Total conversations found: {summary.total_conversations}")
-        print(f"Transcripts found: {summary.transcripts_found}")
-        print(f"Transcripts downloaded: {summary.transcripts_downloaded}")
-        print(f"Errors: {summary.errors}")
+        logger.info("=" * 60)
+        logger.info("Summary")
+        logger.info("=" * 60)
+        logger.info(f"Total conversations found: {summary.total_conversations}")
+        logger.info(f"Transcripts found: {summary.transcripts_found}")
+        logger.info(f"Transcripts downloaded: {summary.transcripts_downloaded}")
+        logger.info(f"Errors: {summary.errors}")
 
         if summary.files:
-            print(f"\nFiles saved to: {downloader.output_folder}/")
+            logger.info(f"\nFiles saved to: {downloader.output_folder}/")
 
         return 0
 
     except KeyboardInterrupt:
-        print("\n\nOperation cancelled by user.")
+        logger.info("\n\nOperation cancelled by user.")
         return 1
     except Exception as e:
-        print(f"\nError: {e}")
+        logger.error(f"\nError: {e}", exc_info=True)
         return 1
 
 

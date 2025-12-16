@@ -42,6 +42,20 @@ flowchart LR
 
 ## Modules
 
+### 📋 Logging
+
+This project uses a comprehensive logging framework that persists all logs to the `logs/` directory with timestamps. LLM interactions are logged in real-time, allowing you to view live transcripts during conversation simulation.
+
+**[📖 View Logging Documentation](LOGGING.md)**
+
+**Key Features:**
+- Real-time console output and persistent file logs
+- Detailed LLM interaction logging with timestamps
+- Automatic log rotation (max 10MB per file)
+- Structured formatting for easy debugging
+
+---
+
 ### 1. Conversation Generator
 Generates synthetic conversations between customer and CSR agents using LLMs for testing and evaluation.
 

@@ -26,11 +26,14 @@ from conversation_generator.models import PersonaTemplate, GenerationConfig
 from conversation_generator.knowledge_base import KnowledgeBase
 from conversation_generator.agents import LLMClient, CustomerAgent, CSRAgent
 from conversation_generator.orchestrator import ConversationOrchestrator
+from conversation_generator.logger import get_logger
 
 
 # Import CXA transformer functionality
 from conversation_generator.cxa_evals.transformer import CXAEvalsTransformer
 
+# Set up logger for this module
+logger = get_logger(__name__)
 
 # Constants
 GENERATED_PERSONAS_PREFIX = "personas_"  # Prefix for generated personas folders
@@ -83,53 +86,48 @@ def main() -> int:
     Returns:
         Exit code (0 for success, 1 for failure)
     """
-    print("=" * 70)
-    print("Conversation Generator for SimulationAgent Evaluation")
-    print("=" * 70)
-    print()
+    logger.info("=" * 70)
+    logger.info("Conversation Generator for SimulationAgent Evaluation")
+    logger.info("=" * 70)
     
     try:
         # Validate configuration
         validate_config()
         
         # Display configuration info
-        print(f"Azure AI Project Endpoint: {config.AZURE_AI_PROJECT_ENDPOINT}")
-        print("Authentication: Azure Active Directory (AAD)")
-        print(f"Customer Deployment: {config.CUSTOMER_DEPLOYMENT}")
-        print(f"CSR Deployment: {config.CSR_DEPLOYMENT}")
-        print(f"Max Turns: {config.MAX_TURNS}")
-        print(f"Temperature: {config.TEMPERATURE}")
-        print()
+        logger.info(f"Azure AI Project Endpoint: {config.AZURE_AI_PROJECT_ENDPOINT}")
+        logger.info("Authentication: Azure Active Directory (AAD)")
+        logger.info(f"Customer Deployment: {config.CUSTOMER_DEPLOYMENT}")
+        logger.info(f"CSR Deployment: {config.CSR_DEPLOYMENT}")
+        logger.info(f"Max Turns: {config.MAX_TURNS}")
+        logger.info(f"Temperature: {config.TEMPERATURE}")
         
         # Initialize LLM client
-        print("-" * 50)
-        print("Step 1: Initializing Azure OpenAI Client")
-        print("-" * 50)
+        logger.info("-" * 50)
+        logger.info("Step 1: Initializing Azure OpenAI Client")
+        logger.info("-" * 50)
         
         llm_client = LLMClient(
             azure_ai_project_endpoint=config.AZURE_AI_PROJECT_ENDPOINT
         )
-        print()
         
         # Load knowledge base
-        print("-" * 50)
-        print("Step 2: Loading Knowledge Base")
-        print("-" * 50)
+        logger.info("-" * 50)
+        logger.info("Step 2: Loading Knowledge Base")
+        logger.info("-" * 50)
         
         knowledge_base = KnowledgeBase(config.KNOWLEDGE_BASE_PATH)
-        print(f"Loaded {len(knowledge_base.get_all_items())} knowledge items.")
-        print()
+        logger.info(f"Loaded {len(knowledge_base.get_all_items())} knowledge items.")
         
         # Load personas
-        print("-" * 50)
-        print("Step 3: Loading Persona Templates")
-        print("-" * 50)
+        logger.info("-" * 50)
+        logger.info("Step 3: Loading Persona Templates")
+        logger.info("-" * 50)
         
         personas = load_personas(config.PERSONA_TEMPLATES_PATH)
-        print(f"Loaded {len(personas)} persona templates:")
+        logger.info(f"Loaded {len(personas)} persona templates:")
         for i, p in enumerate(personas, 1):
-            print(f"  {i}. {p.name} ({p.complexity})")
-        print()
+            logger.info(f"  {i}. {p.name} ({p.complexity})")
         
         # Create generation config
         gen_config = GenerationConfig(
@@ -157,24 +155,25 @@ def main() -> int:
         if personas_folder:
             # Save conversations inside the generated personas folder
             output_dir = personas_folder / f"conversations_{timestamp}"
+            logger.debug(f"Using generated personas folder: {personas_folder}")
         else:
             # Use default output directory (old behavior for examples folder)
             output_dir = Path(config.OUTPUT_DIR) / timestamp
+            logger.debug("Using default output directory")
         
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        print("-" * 50)
-        print("Step 4: Generating Conversations")
-        print("-" * 50)
-        print(f"Output directory: {output_dir}")
-        print(f"Generating 1 conversation per persona ({len(personas)} total)")
-        print()
+        logger.info("-" * 50)
+        logger.info("Step 4: Generating Conversations")
+        logger.info("-" * 50)
+        logger.info(f"Output directory: {output_dir}")
+        logger.info(f"Generating 1 conversation per persona ({len(personas)} total)")
         
         # Generate conversations - one per persona
         conversations_generated = 0
         
         for persona in personas:
-            print(f"Generating conversation for: {persona.name}")
+            logger.info(f"Generating conversation for: {persona.name}")
             
             try:
                 # Create agents for this conversation
@@ -213,23 +212,21 @@ def main() -> int:
                 
                 conversations_generated += 1
                 status_symbol = "✓" if conversation.status.value != "failed" else "✗"
-                print(f"  {status_symbol} [{conversations_generated}/{len(personas)}] "
+                logger.info(f"  {status_symbol} [{conversations_generated}/{len(personas)}] "
                       f"{conversation.status.value} - {conversation.turn_count} turns "
                       f"({filename})")
             
             except Exception as e:
-                print(f"  ✗ Error generating conversation: {e}")
+                logger.error(f"  ✗ Error generating conversation: {e}", exc_info=True)
                 continue
         
         # Generate summary
-        print()
-        print("=" * 70)
-        print("Summary")
-        print("=" * 70)
-        print(f"Total conversations generated: {conversations_generated}")
-        print(f"Output directory: {output_dir}")
-        print()
-        print(f"Conversations saved to: {output_dir}/")
+        logger.info("=" * 70)
+        logger.info("Summary")
+        logger.info("=" * 70)
+        logger.info(f"Total conversations generated: {conversations_generated}")
+        logger.info(f"Output directory: {output_dir}")
+        logger.info(f"Conversations saved to: {output_dir}/")
         
         # Save generation metadata
         metadata = {
@@ -248,13 +245,13 @@ def main() -> int:
         with open(metadata_file, 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2)
         
-        print(f"Metadata saved to: {metadata_file}")
+        logger.info(f"Metadata saved to: {metadata_file}")
         print()
         
         # Step 5: Transform to CXA Evals format
-        print("=" * 70)
-        print("Step 5: Transforming to CXA Evals Format")
-        print("=" * 70)
+        logger.info("=" * 70)
+        logger.info("Step 5: Transforming to CXA Evals Format")
+        logger.info("=" * 70)
         
         # Create CXA transformer
         transformer = CXAEvalsTransformer(
@@ -269,14 +266,13 @@ def main() -> int:
             output_file=str(cxa_output_file)
         )
         
-        print(f"✓ Transformed {num_transformed} conversations to CXA Evals format")
-        print(f"✓ CXA output saved to: {cxa_output_file}")
-        print()
+        logger.info(f"✓ Transformed {num_transformed} conversations to CXA Evals format")
+        logger.info(f"✓ CXA output saved to: {cxa_output_file}")
         
         # Step 6: Create CXA Evals config file
-        print("-" * 50)
-        print("Creating CXA Evals Config File")
-        print("-" * 50)
+        logger.info("-" * 50)
+        logger.info("Creating CXA Evals Config File")
+        logger.info("-" * 50)
         
         # Load template config
         template_config_path = Path(__file__).parent / "conversation_generator" / "cxa_evals" / "cxa_evals_conversation_generator_custom_config.json"
@@ -302,30 +298,29 @@ def main() -> int:
             with open(cxa_config_file, 'w', encoding='utf-8') as f:
                 json.dump(cxa_config, f, indent=2)
             
-            print(f"✓ CXA Evals config saved to: {cxa_config_file}")
-            print(f"  - source_folder_path: {relative_source_path}")
-            print(f"  - output_folder_path: {relative_output_path}")
+            logger.info(f"✓ CXA Evals config saved to: {cxa_config_file}")
+            logger.info(f"  - source_folder_path: {relative_source_path}")
+            logger.info(f"  - output_folder_path: {relative_output_path}")
         else:
-            print(f"⚠ Warning: Template config not found at {template_config_path}")
-            print("  CXA Evals config file was not created.")
+            logger.warning(f"⚠ Warning: Template config not found at {template_config_path}")
+            logger.warning("  CXA Evals config file was not created.")
         
-        print()
-        print("=" * 70)
-        print("Complete!")
-        print("=" * 70)
-        print(f"All files saved to: {output_dir}/")
-        print(f"  - Conversations: {conversations_generated} JSON files")
-        print(f"  - CXA Evals data: cxa_evals_multi_turn_conversations.json")
-        print(f"  - CXA Evals config: cxa_evals_conversation_generator_custom_config.json")
-        print(f"  - Output directory: cxa-evals-output/")
+        logger.info("=" * 70)
+        logger.info("Complete!")
+        logger.info("=" * 70)
+        logger.info(f"All files saved to: {output_dir}/")
+        logger.info(f"  - Conversations: {conversations_generated} JSON files")
+        logger.info(f"  - CXA Evals data: cxa_evals_multi_turn_conversations.json")
+        logger.info(f"  - CXA Evals config: cxa_evals_conversation_generator_custom_config.json")
+        logger.info(f"  - Output directory: cxa-evals-output/")
         
         return 0
     
     except KeyboardInterrupt:
-        print("\n\nOperation cancelled by user.")
+        logger.info("\n\nOperation cancelled by user.")
         return 1
     except Exception as e:
-        print(f"\nError: {e}")
+        logger.error(f"\nError: {e}", exc_info=True)
         import traceback
         traceback.print_exc()
         return 1

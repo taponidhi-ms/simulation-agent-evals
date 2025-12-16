@@ -1,6 +1,9 @@
 # Token cache file (contains sensitive auth tokens)
 .token_cache.json
 
+# Application logs directory
+logs/
+
 ### Python template
 # Byte-compiled / optimized / DLL files
 __pycache__/

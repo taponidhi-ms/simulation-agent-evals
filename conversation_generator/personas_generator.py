@@ -19,7 +19,11 @@ from datetime import datetime
 from typing import Dict, Any
 
 from .agents import LLMClient
+from .logger import get_logger, log_llm_interaction
 
+
+# Set up logger for this module
+logger = get_logger(__name__)
 
 # Constants
 MAX_PERSONAS_RESPONSE_TOKENS = 4000  # Allow for longer responses with multiple personas
@@ -95,6 +99,9 @@ def extract_personas_from_prompt(
     ]
     
     try:
+        logger.info("Generating personas from prompt...")
+        logger.debug(f"Prompt length: {len(prompt)} characters")
+        
         response = llm_client.generate(
             messages=messages,
             model=model,
@@ -102,10 +109,23 @@ def extract_personas_from_prompt(
             max_tokens=MAX_PERSONAS_RESPONSE_TOKENS
         )
         
+        # Log the LLM interaction for transcript viewing
+        prompt_text = f"SYSTEM: {SYSTEM_PROMPT}\n\nUSER: {prompt}"
+        log_llm_interaction(
+            logger=logger,
+            agent_type="PersonaGenerator",
+            prompt=prompt_text,
+            response=response,
+            model=model,
+            temperature=temperature
+        )
+        
         # Try to parse the response as JSON
         try:
             personas_data = json.loads(response)
+            logger.debug("Successfully parsed LLM response as JSON")
         except json.JSONDecodeError:
+            logger.debug("Initial JSON parsing failed, attempting to extract from markdown")
             # If response contains markdown code blocks, try to extract JSON
             personas_data = None
             
@@ -120,11 +140,13 @@ def extract_personas_from_prompt(
                     json_str = response[json_start:json_end].strip()
                     try:
                         personas_data = json.loads(json_str)
+                        logger.debug(f"Successfully extracted JSON from {prefix} block")
                         break
                     except json.JSONDecodeError:
                         continue
             
             if personas_data is None:
+                logger.error(f"LLM response is not valid JSON: {response}")
                 raise ValueError(f"LLM response is not valid JSON: {response}")
         
         # Validate the structure
@@ -141,9 +163,11 @@ def extract_personas_from_prompt(
                 if field not in persona:
                     raise ValueError(f"Persona {i} missing required field: {field}")
         
+        logger.info(f"Successfully extracted {len(personas_data['personas'])} personas")
         return personas_data
         
     except Exception as e:
+        logger.error(f"Failed to extract personas from prompt: {e}")
         raise RuntimeError(f"Failed to extract personas from prompt: {e}")
 
 
@@ -178,6 +202,8 @@ def save_personas(
     personas_dir = output_dir / f"personas_{timestamp}"
     personas_dir.mkdir(parents=True, exist_ok=True)
     
+    logger.info(f"Saving personas to: {personas_dir}")
+    
     # Prepare metadata including the original prompt
     # We include both timestamp formats:
     # - generated_at: ISO 8601 format for precise sorting and parsing
@@ -198,10 +224,14 @@ def save_personas(
     with open(personas_file, 'w', encoding='utf-8') as f:
         json.dump(personas_with_metadata, f, indent=2, ensure_ascii=False)
     
+    logger.info(f"✓ Personas saved to: {personas_file}")
+    
     # Also save separate _metadata.json for backward compatibility
     metadata_file = personas_dir / "_metadata.json"
     with open(metadata_file, 'w', encoding='utf-8') as f:
         json.dump(metadata, f, indent=2, ensure_ascii=False)
+    
+    logger.debug(f"Metadata saved to: {metadata_file}")
     
     return personas_file
 
@@ -277,54 +307,53 @@ def main():
     try:
         ai_project_endpoint, default_deployment = get_config_values()
     except Exception as e:
-        print(f"Error loading configuration: {e}", file=sys.stderr)
-        print("Please create a config.json file in the conversation_generator directory.", file=sys.stderr)
+        logger.error(f"Error loading configuration: {e}")
+        logger.error("Please create a config.json file in the conversation_generator directory.")
         return 1
     
     # Get the prompt
     if args.prompt:
         prompt = args.prompt
+        logger.debug("Using prompt from command line argument")
     else:
         try:
             with open(args.prompt_file, 'r', encoding='utf-8') as f:
                 prompt = f.read().strip()
+            logger.debug(f"Loaded prompt from file: {args.prompt_file}")
         except FileNotFoundError:
-            print(f"Error: Prompt file not found: {args.prompt_file}", file=sys.stderr)
+            logger.error(f"Error: Prompt file not found: {args.prompt_file}")
             return 1
         except Exception as e:
-            print(f"Error reading prompt file: {e}", file=sys.stderr)
+            logger.error(f"Error reading prompt file: {e}")
             return 1
     
     # Validate configuration
     if not ai_project_endpoint:
-        print("Error: Azure AI Project endpoint is required for AAD authentication.", file=sys.stderr)
-        print("Set azure_ai_project_endpoint in conversation_generator/config.json", file=sys.stderr)
+        logger.error("Error: Azure AI Project endpoint is required for AAD authentication.")
+        logger.error("Set azure_ai_project_endpoint in conversation_generator/config.json")
         return 1
     
     model = args.model or default_deployment
     
-    print("=" * 70)
-    print("Personas Generator")
-    print("=" * 70)
-    print()
+    logger.info("=" * 70)
+    logger.info("Personas Generator")
+    logger.info("=" * 70)
     
     # Display authentication mode
-    print(f"Azure AI Project Endpoint: {ai_project_endpoint}")
-    print("Authentication: Azure Active Directory (AAD)")
-    print(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
-    print(f"Model: {model}")
-    print(f"Temperature: {args.temperature}")
-    print()
+    logger.info(f"Azure AI Project Endpoint: {ai_project_endpoint}")
+    logger.info("Authentication: Azure Active Directory (AAD)")
+    logger.info(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
+    logger.info(f"Model: {model}")
+    logger.info(f"Temperature: {args.temperature}")
     
     try:
         # Initialize LLM client
         llm_client = LLMClient(
             azure_ai_project_endpoint=ai_project_endpoint
         )
-        print()
         
         # Extract personas from prompt
-        print("Generating personas from prompt...")
+        logger.info("Generating personas from prompt...")
         personas_data = extract_personas_from_prompt(
             llm_client=llm_client,
             prompt=prompt,
@@ -333,25 +362,23 @@ def main():
         )
         
         num_personas = len(personas_data.get("personas", []))
-        print(f"✓ Generated {num_personas} personas")
-        print()
+        logger.info(f"✓ Generated {num_personas} personas")
         
         # Display generated personas
-        print("Generated Personas:")
-        print("-" * 70)
+        logger.info("Generated Personas:")
+        logger.info("-" * 70)
         for i, persona in enumerate(personas_data["personas"], 1):
-            print(f"{i}. {persona['name']}")
-            print(f"   Goal: {persona['goal']}")
-            print(f"   Tone: {persona['tone']}")
-            print(f"   Complexity: {persona['complexity']}")
-            print()
+            logger.info(f"{i}. {persona['name']}")
+            logger.info(f"   Goal: {persona['goal']}")
+            logger.info(f"   Tone: {persona['tone']}")
+            logger.info(f"   Complexity: {persona['complexity']}")
         
         # Save personas
         personas_file = save_personas(personas_data, prompt)
         
-        print("=" * 70)
-        print("Transforming Personas to CXA Evals Format")
-        print("=" * 70)
+        logger.info("=" * 70)
+        logger.info("Transforming Personas to CXA Evals Format")
+        logger.info("=" * 70)
         
         # Transform personas to CXA evals format
         cxa_personas = transform_personas_to_cxa(personas_data, prompt)
@@ -360,12 +387,11 @@ def main():
         with open(cxa_personas_file, 'w', encoding='utf-8') as f:
             json.dump(cxa_personas, f, indent=2, ensure_ascii=False)
         
-        print(f"✓ CXA Evals personas saved to: {cxa_personas_file}")
-        print()
+        logger.info(f"✓ CXA Evals personas saved to: {cxa_personas_file}")
         
         # Create CXA Evals config for persona evaluation
-        print("Creating CXA Evals Config for Persona Evaluation")
-        print("-" * 70)
+        logger.info("Creating CXA Evals Config for Persona Evaluation")
+        logger.info("-" * 70)
         
         template_config_path = Path(__file__).parent / "cxa_evals" / "cxa_evals_persona_generator_custom_config.json"
         
@@ -389,31 +415,28 @@ def main():
             with open(cxa_config_file, 'w', encoding='utf-8') as f:
                 json.dump(cxa_config, f, indent=2)
             
-            print(f"✓ CXA Evals config saved to: {cxa_config_file}")
-            print(f"  - source_folder_path: {relative_source_path}")
-            print(f"  - output_folder_path: {relative_output_path}")
+            logger.info(f"✓ CXA Evals config saved to: {cxa_config_file}")
+            logger.info(f"  - source_folder_path: {relative_source_path}")
+            logger.info(f"  - output_folder_path: {relative_output_path}")
         else:
-            print(f"⚠ Warning: Template config not found at {template_config_path}")
-            print("  CXA Evals config file was not created.")
+            logger.warning(f"⚠ Warning: Template config not found at {template_config_path}")
+            logger.warning("  CXA Evals config file was not created.")
         
-        print()
-        print("=" * 70)
-        print("Success!")
-        print("=" * 70)
-        print(f"Personas saved to: {personas_file}")
-        print(f"Metadata saved to: {personas_file.parent / '_metadata.json'}")
-        print(f"CXA Evals personas: {cxa_personas_file}")
-        print(f"CXA Evals config: {cxa_config_file}")
-        print()
+        logger.info("=" * 70)
+        logger.info("Success!")
+        logger.info("=" * 70)
+        logger.info(f"Personas saved to: {personas_file}")
+        logger.info(f"Metadata saved to: {personas_file.parent / '_metadata.json'}")
+        logger.info(f"CXA Evals personas: {cxa_personas_file}")
+        logger.info(f"CXA Evals config: {cxa_config_file}")
         
         return 0
         
     except Exception as e:
-        print()
-        print("=" * 70)
-        print("Error!")
-        print("=" * 70)
-        print(f"{e}", file=sys.stderr)
+        logger.error("=" * 70)
+        logger.error("Error!")
+        logger.error("=" * 70)
+        logger.error(f"{e}", exc_info=True)
         traceback.print_exc()
         return 1
 
