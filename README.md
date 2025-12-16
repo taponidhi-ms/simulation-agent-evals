@@ -115,7 +115,8 @@ python download_transcripts.py
 
 - **Python 3.9 or higher**
 - **For Conversation Generator**: 
-  - Azure AI Foundry project access with AAD authentication
+  - Azure AI Foundry project access (for AAD authentication), OR
+  - Azure OpenAI resource access with API key (for API key authentication)
 - **For Transcript Downloader**: Access to a Dynamics 365 Customer Service organization
 
 ## Installation
@@ -135,13 +136,15 @@ python download_transcripts.py
    # Edit config.json with your settings
    ```
 
-4. Authenticate with Azure (for Conversation Generator):
+4. Authenticate with Azure (for Conversation Generator with AAD):
    ```bash
-   # Login with Azure CLI
+   # Login with Azure CLI (only needed for AAD authentication)
    az login
    # Or set up other Azure credential methods
    # See: https://learn.microsoft.com/python/api/azure-identity/azure.identity.defaultazurecredential
    ```
+   
+   **Note:** If using API key authentication for the Conversation Generator, skip this step and configure your API key in config.json instead.
 
 ## Configuration
 
@@ -154,7 +157,9 @@ Copy the `.example` files to create your configuration files. See each module's 
 
 ### Conversation Generator Authentication
 
-The Conversation Generator uses **AAD (Azure Active Directory) authentication** via `DefaultAzureCredential`.
+The Conversation Generator supports **two authentication methods**:
+
+#### Option 1: AAD (Azure Active Directory) Authentication
 
 **Configuration:**
 ```json
@@ -175,6 +180,18 @@ For local development, the easiest method is to use Azure CLI:
 ```bash
 az login
 ```
+
+#### Option 2: API Key Authentication
+
+**Configuration:**
+```json
+{
+  "azure_openai_api_key": "your-api-key-here",
+  "azure_openai_endpoint": "https://your-resource.openai.azure.com/"
+}
+```
+
+**Note:** Configure **exactly one** authentication method in your config.json. The system will validate your configuration on startup.
 
 CXA Evals configuration templates are automatically managed:
 - **Conversation Evaluation**: `conversation_generator/cxa_evals/cxa_evals_conversation_generator_custom_config.json`
