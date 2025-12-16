@@ -442,13 +442,14 @@ The **Orchestrator** manages the conversation flow with these rules:
 
 ### 3.6 Conversation Evaluation Rules
 
-The quality of generated conversations is evaluated using **3 custom rules**:
+The quality of generated conversations is evaluated using **4 custom rules**:
 
 | Rule Name | Category | Description |
 |-----------|----------|-------------|
 | **persona_adherence** | Conversationality | The Customer should maintain consistency with their assigned persona throughout the conversation. The Customer's persona is: {{persona_name}} - {{persona_description}}. The Customer should communicate with the tone: {{persona_tone}}. |
 | **goal_pursuit** | Usefulness | The Customer should actively work towards achieving their goal: {{persona_goal}}. The Customer's messages should reflect their intent to accomplish this goal. |
 | **complexity_appropriate** | Conversationality | The Customer's behavior and communication should align with the expected complexity level: {{persona_complexity}}. This includes the depth of questions, technical understanding, and patience level. |
+| **topic_relevance** | Relevance | The Customer should stay on topic and ask questions that are relevant to their goal: {{persona_goal}}. The Customer should not ask random, unrelated questions that have no connection to the conversation context or their stated problem. |
 
 **Note:** These rules evaluate the **Customer agent's performance**, not the CSR agent. The focus is on whether the simulated customer behaves realistically according to their persona.
 
@@ -481,7 +482,7 @@ This project uses the **CustomEvaluator** from the CXA Evals framework with doma
 | Evaluator Type | Purpose | Metrics |
 |----------------|---------|---------|
 | **CustomEvaluator (Persona)** | Evaluate quality of generated personas | 5 custom rules: diversity, completeness, relevance, distribution, count accuracy |
-| **CustomEvaluator (Conversation)** | Evaluate quality of customer simulation | 3 custom rules: persona adherence, goal pursuit, complexity appropriateness |
+| **CustomEvaluator (Conversation)** | Evaluate quality of customer simulation | 4 custom rules: persona adherence, goal pursuit, complexity appropriateness, topic relevance |
 
 ### 4.2 How CXA Evals Works
 

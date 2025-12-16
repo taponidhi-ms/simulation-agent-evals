@@ -45,6 +45,12 @@
             "rule_category": "Conversationality",
             "rule_description": "The Customer's behavior and communication should align with the expected complexity level: {{persona_complexity}}. This includes the depth of questions, technical understanding, and patience level.",
             "scoring_hint": ""
+          },
+          {
+            "rule_name": "topic_relevance",
+            "rule_category": "Relevance",
+            "rule_description": "The Customer should stay on topic and ask questions that are relevant to their goal: {{persona_goal}}. The Customer should not ask random, unrelated questions that have no connection to the conversation context or their stated problem.",
+            "scoring_hint": ""
           }
         ]
       }
