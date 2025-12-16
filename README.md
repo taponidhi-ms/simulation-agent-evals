@@ -100,7 +100,9 @@ python download_transcripts.py
 ## Prerequisites
 
 - **Python 3.9 or higher**
-- **For Conversation Generator**: Azure OpenAI access
+- **For Conversation Generator**: 
+  - Azure AI Foundry project access (recommended for AAD authentication), OR
+  - Azure OpenAI access with API keys (legacy)
 - **For Transcript Downloader**: Access to a Dynamics 365 Customer Service organization
 
 ## Installation
@@ -128,6 +130,19 @@ Each module uses a `config.json` file for configuration:
 - **Transcript Downloader**: `transcript_downloader/config.json`
 
 Copy the `.example` files to create your configuration files. See each module's README for detailed configuration options.
+
+### Conversation Generator Authentication
+
+The Conversation Generator supports two authentication methods:
+
+1. **AAD Authentication (Recommended)**: Uses Azure Active Directory authentication via `DefaultAzureCredential`
+   - Set `azure_ai_project_endpoint` in config.json
+   - Example: `"azure_ai_project_endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project"`
+   - No API key needed - uses your Azure credentials
+
+2. **API Key Authentication (Legacy)**: Uses API keys
+   - Set `azure_openai_api_key` and `azure_openai_endpoint` in config.json
+   - See `config.json.example.apikey` for an example
 
 CXA Evals configuration templates are automatically managed:
 - **Conversation Evaluation**: `conversation_generator/cxa_evals/cxa_evals_conversation_generator_custom_config.json`

@@ -58,7 +58,9 @@ python generate_conversations.py
 ## Prerequisites
 
 - Python 3.9 or higher
-- Azure OpenAI access
+- **Choose one authentication method:**
+  - **Azure AI Foundry project access** (recommended for AAD authentication), OR
+  - **Azure OpenAI access with API keys** (legacy)
 
 ## Installation
 
@@ -81,22 +83,65 @@ cd conversation_generator
 # Copy the example config file
 cp config.json.example config.json
 
-# Edit config.json with your Azure OpenAI credentials
-# "azure_openai_api_key": "your-key-here"
-# "azure_openai_endpoint": "https://your-resource.cognitiveservices.azure.com"
+# Edit config.json with your authentication settings
+# See Authentication section below for details
 
 # Run the generator (from repository root)
 cd ..
 python generate_conversations.py
 ```
 
+## Authentication
+
+The Conversation Generator supports two authentication methods:
+
+### Option 1: AAD Authentication (Recommended)
+
+Uses Azure Active Directory authentication via `DefaultAzureCredential`. This is the recommended approach for Azure AI Foundry projects.
+
+**Required configuration:**
+```json
+{
+  "azure_ai_project_endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project",
+  "customer_deployment": "gpt-4o-mini",
+  "csr_deployment": "gpt-4o-mini"
+}
+```
+
+**Prerequisites:**
+- Azure AI Foundry project setup
+- Valid Azure credentials (can be set via `az login` or environment variables)
+- Packages: `azure-ai-projects`, `azure-identity` (included in requirements.txt)
+
+### Option 2: API Key Authentication (Legacy)
+
+Uses Azure OpenAI API keys for authentication.
+
+**Required configuration:**
+```json
+{
+  "azure_openai_api_key": "your-key-here",
+  "azure_openai_endpoint": "https://your-resource.cognitiveservices.azure.com",
+  "customer_deployment": "gpt-4o-mini",
+  "csr_deployment": "gpt-4o-mini"
+}
+```
+
+See `config.json.example.apikey` for a complete example.
+
 ## Required Configuration
 
-The following fields are required in `config.json`:
+Choose **ONE** of the following authentication configurations:
 
+### For AAD Authentication:
 | Field | Description |
 |-------|-------------|
-| `azure_openai_api_key` | Your Azure OpenAI API key (subscription key from https://ai.azure.com/) |
+| `azure_ai_project_endpoint` | Azure AI Project endpoint URL (e.g., https://your-resource.services.ai.azure.com/api/projects/your-project) |
+
+### For API Key Authentication:
+| Field | Description |
+|-------|-------------|
+| `azure_openai_api_key` | Your Azure OpenAI API key |
 | `azure_openai_endpoint` | Your Azure OpenAI endpoint URL (e.g., https://your-resource.cognitiveservices.azure.com/) |
 
 ## Optional Configuration
