@@ -30,14 +30,15 @@ def get_config_values():
     Get configuration values, importing only when needed.
     
     Returns:
-        tuple[str, str, str, str]: A tuple containing (api_key, endpoint, api_version, deployment)
+        tuple: A tuple containing (api_key, endpoint, api_version, deployment, ai_project_endpoint)
     """
     from . import config
     return (
         config.AZURE_OPENAI_API_KEY,
         config.AZURE_OPENAI_ENDPOINT,
         config.AZURE_OPENAI_API_VERSION,
-        config.CUSTOMER_DEPLOYMENT
+        config.CUSTOMER_DEPLOYMENT,
+        config.AZURE_AI_PROJECT_ENDPOINT
     )
 
 
@@ -277,7 +278,7 @@ def main():
     
     # Get configuration values
     try:
-        api_key, endpoint, api_version, default_deployment = get_config_values()
+        api_key, endpoint, api_version, default_deployment, ai_project_endpoint = get_config_values()
     except Exception as e:
         print(f"Error loading configuration: {e}", file=sys.stderr)
         print("Please create a config.json file in the conversation_generator directory.", file=sys.stderr)
@@ -297,15 +298,14 @@ def main():
             print(f"Error reading prompt file: {e}", file=sys.stderr)
             return 1
     
-    # Validate configuration
-    if not api_key:
-        print("Error: Azure OpenAI API key is required.", file=sys.stderr)
-        print("Set it in conversation_generator/config.json", file=sys.stderr)
-        return 1
+    # Validate configuration - either API key or AAD authentication
+    has_api_key = bool(api_key and endpoint)
+    has_aad = bool(ai_project_endpoint)
     
-    if not endpoint:
-        print("Error: Azure OpenAI endpoint is required.", file=sys.stderr)
-        print("Set it in conversation_generator/config.json", file=sys.stderr)
+    if not has_api_key and not has_aad:
+        print("Error: Either API key authentication or AAD authentication must be configured.", file=sys.stderr)
+        print("Set azure_openai_api_key + azure_openai_endpoint OR azure_ai_project_endpoint", file=sys.stderr)
+        print("in conversation_generator/config.json", file=sys.stderr)
         return 1
     
     model = args.model or default_deployment
@@ -314,6 +314,15 @@ def main():
     print("Personas Generator")
     print("=" * 70)
     print()
+    
+    # Display authentication mode
+    if ai_project_endpoint:
+        print(f"Azure AI Project Endpoint: {ai_project_endpoint}")
+        print("Authentication: Azure Active Directory (AAD)")
+    else:
+        print(f"Azure OpenAI Endpoint: {endpoint}")
+        print("Authentication: API Key")
+    
     print(f"Prompt: {prompt[:100]}{'...' if len(prompt) > 100 else ''}")
     print(f"Model: {model}")
     print(f"Temperature: {args.temperature}")
@@ -325,7 +334,8 @@ def main():
         llm_client = LLMClient(
             api_key=api_key,
             azure_endpoint=endpoint,
-            api_version=api_version
+            api_version=api_version,
+            azure_ai_project_endpoint=ai_project_endpoint
         )
         print("✓ Client initialized")
         print()

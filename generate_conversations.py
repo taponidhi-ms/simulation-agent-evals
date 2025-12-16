@@ -69,13 +69,14 @@ def validate_config() -> None:
     Raises:
         ValueError: If required configuration is missing
     """
-    if not config.AZURE_OPENAI_API_KEY:
+    # Check if either API key or AAD authentication is configured
+    has_api_key = bool(config.AZURE_OPENAI_API_KEY and config.AZURE_OPENAI_ENDPOINT)
+    has_aad = bool(config.AZURE_AI_PROJECT_ENDPOINT)
+    
+    if not has_api_key and not has_aad:
         raise ValueError(
-            "Azure OpenAI API key is required. Set CG_AZURE_OPENAI_API_KEY environment variable."
-        )
-    if not config.AZURE_OPENAI_ENDPOINT:
-        raise ValueError(
-            "Azure OpenAI endpoint is required. Set CG_AZURE_OPENAI_ENDPOINT environment variable."
+            "Either API key authentication (azure_openai_api_key + azure_openai_endpoint) or "
+            "AAD authentication (azure_ai_project_endpoint) must be configured in config.json"
         )
 
 
@@ -95,7 +96,14 @@ def main() -> int:
         # Validate configuration
         validate_config()
         
-        print(f"Azure OpenAI Endpoint: {config.AZURE_OPENAI_ENDPOINT}")
+        # Display configuration info
+        if config.AZURE_AI_PROJECT_ENDPOINT:
+            print(f"Azure AI Project Endpoint: {config.AZURE_AI_PROJECT_ENDPOINT}")
+            print("Authentication: Azure Active Directory (AAD)")
+        else:
+            print(f"Azure OpenAI Endpoint: {config.AZURE_OPENAI_ENDPOINT}")
+            print("Authentication: API Key")
+        
         print(f"Customer Deployment: {config.CUSTOMER_DEPLOYMENT}")
         print(f"CSR Deployment: {config.CSR_DEPLOYMENT}")
         print(f"Max Turns: {config.MAX_TURNS}")
@@ -110,7 +118,8 @@ def main() -> int:
         llm_client = LLMClient(
             api_key=config.AZURE_OPENAI_API_KEY,
             azure_endpoint=config.AZURE_OPENAI_ENDPOINT,
-            api_version=config.AZURE_OPENAI_API_VERSION
+            api_version=config.AZURE_OPENAI_API_VERSION,
+            azure_ai_project_endpoint=config.AZURE_AI_PROJECT_ENDPOINT
         )
         print("Azure OpenAI client initialized successfully.")
         print()
