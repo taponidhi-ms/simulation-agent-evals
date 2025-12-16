@@ -1,6 +1,5 @@
 {
-  "azure_openai_api_key": "your-azure-openai-api-key-here",
-  "azure_openai_endpoint": "https://your-resource-name.cognitiveservices.azure.com",
+  "azure_ai_project_endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project",
   "azure_openai_api_version": "2024-02-01",
   "customer_deployment": "gpt-4o-mini",
   "csr_deployment": "gpt-4o-mini",
