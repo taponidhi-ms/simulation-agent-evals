@@ -100,7 +100,8 @@ python download_transcripts.py
 ## Prerequisites
 
 - **Python 3.9 or higher**
-- **For Conversation Generator**: Azure OpenAI access
+- **For Conversation Generator**: 
+  - Azure AI Foundry project access with AAD authentication
 - **For Transcript Downloader**: Access to a Dynamics 365 Customer Service organization
 
 ## Installation
@@ -120,6 +121,14 @@ python download_transcripts.py
    # Edit config.json with your settings
    ```
 
+4. Authenticate with Azure (for Conversation Generator):
+   ```bash
+   # Login with Azure CLI
+   az login
+   # Or set up other Azure credential methods
+   # See: https://learn.microsoft.com/python/api/azure-identity/azure.identity.defaultazurecredential
+   ```
+
 ## Configuration
 
 Each module uses a `config.json` file for configuration:
@@ -128,6 +137,30 @@ Each module uses a `config.json` file for configuration:
 - **Transcript Downloader**: `transcript_downloader/config.json`
 
 Copy the `.example` files to create your configuration files. See each module's README for detailed configuration options.
+
+### Conversation Generator Authentication
+
+The Conversation Generator uses **AAD (Azure Active Directory) authentication** via `DefaultAzureCredential`.
+
+**Configuration:**
+```json
+{
+  "azure_ai_project_endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project"
+}
+```
+
+**Authentication Methods:**
+`DefaultAzureCredential` supports multiple authentication methods in order of precedence:
+1. Environment variables
+2. Managed Identity
+3. Azure CLI (`az login`)
+4. Azure PowerShell
+5. Interactive browser
+
+For local development, the easiest method is to use Azure CLI:
+```bash
+az login
+```
 
 CXA Evals configuration templates are automatically managed:
 - **Conversation Evaluation**: `conversation_generator/cxa_evals/cxa_evals_conversation_generator_custom_config.json`

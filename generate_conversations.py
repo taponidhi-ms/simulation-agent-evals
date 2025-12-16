@@ -69,13 +69,10 @@ def validate_config() -> None:
     Raises:
         ValueError: If required configuration is missing
     """
-    if not config.AZURE_OPENAI_API_KEY:
+    if not config.AZURE_AI_PROJECT_ENDPOINT:
         raise ValueError(
-            "Azure OpenAI API key is required. Set CG_AZURE_OPENAI_API_KEY environment variable."
-        )
-    if not config.AZURE_OPENAI_ENDPOINT:
-        raise ValueError(
-            "Azure OpenAI endpoint is required. Set CG_AZURE_OPENAI_ENDPOINT environment variable."
+            "Azure AI Project endpoint is required for AAD authentication. "
+            "Set azure_ai_project_endpoint in config.json"
         )
 
 
@@ -95,7 +92,9 @@ def main() -> int:
         # Validate configuration
         validate_config()
         
-        print(f"Azure OpenAI Endpoint: {config.AZURE_OPENAI_ENDPOINT}")
+        # Display configuration info
+        print(f"Azure AI Project Endpoint: {config.AZURE_AI_PROJECT_ENDPOINT}")
+        print("Authentication: Azure Active Directory (AAD)")
         print(f"Customer Deployment: {config.CUSTOMER_DEPLOYMENT}")
         print(f"CSR Deployment: {config.CSR_DEPLOYMENT}")
         print(f"Max Turns: {config.MAX_TURNS}")
@@ -108,11 +107,8 @@ def main() -> int:
         print("-" * 50)
         
         llm_client = LLMClient(
-            api_key=config.AZURE_OPENAI_API_KEY,
-            azure_endpoint=config.AZURE_OPENAI_ENDPOINT,
-            api_version=config.AZURE_OPENAI_API_VERSION
+            azure_ai_project_endpoint=config.AZURE_AI_PROJECT_ENDPOINT
         )
-        print("Azure OpenAI client initialized successfully.")
         print()
         
         # Load knowledge base

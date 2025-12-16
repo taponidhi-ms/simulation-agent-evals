@@ -4,6 +4,8 @@ requests>=2.32.5
 
 # Conversation Generator Dependencies
 openai>=1.0.0
+azure-ai-projects>=2.0.0b1
+azure-identity>=1.18.0
 
 # Configuration validation
 pydantic>=2.0.0

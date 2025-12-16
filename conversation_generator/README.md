@@ -58,7 +58,7 @@ python generate_conversations.py
 ## Prerequisites
 
 - Python 3.9 or higher
-- Azure OpenAI access
+- Azure AI Foundry project access with AAD authentication
 
 ## Installation
 
@@ -81,23 +81,44 @@ cd conversation_generator
 # Copy the example config file
 cp config.json.example config.json
 
-# Edit config.json with your Azure OpenAI credentials
-# "azure_openai_api_key": "your-key-here"
-# "azure_openai_endpoint": "https://your-resource.cognitiveservices.azure.com"
+# Edit config.json with your Azure AI Project endpoint
+# "azure_ai_project_endpoint": "https://your-resource.services.ai.azure.com/api/projects/your-project"
+
+# Authenticate with Azure
+cd ..
+az login
 
 # Run the generator (from repository root)
-cd ..
 python generate_conversations.py
 ```
 
-## Required Configuration
+## Authentication
 
-The following fields are required in `config.json`:
+The Conversation Generator uses **AAD (Azure Active Directory) authentication** via `DefaultAzureCredential`.
+
+### Required Configuration
+
+Set the Azure AI Project endpoint in `config.json`:
 
 | Field | Description |
 |-------|-------------|
-| `azure_openai_api_key` | Your Azure OpenAI API key (subscription key from https://ai.azure.com/) |
-| `azure_openai_endpoint` | Your Azure OpenAI endpoint URL (e.g., https://your-resource.cognitiveservices.azure.com/) |
+| `azure_ai_project_endpoint` | Azure AI Project endpoint URL (e.g., https://your-resource.services.ai.azure.com/api/projects/your-project) |
+
+### Authentication Setup
+
+`DefaultAzureCredential` supports multiple authentication methods (in order of precedence):
+1. **Environment variables** - Set `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_CLIENT_SECRET`
+2. **Managed Identity** - Automatically used when running in Azure (App Service, Functions, etc.)
+3. **Azure CLI** - Run `az login` (recommended for local development)
+4. **Azure PowerShell** - Run `Connect-AzAccount`
+5. **Interactive browser** - Opens browser for authentication if other methods fail
+
+For local development, use Azure CLI:
+```bash
+az login
+```
+
+For more details, see [Azure Identity documentation](https://learn.microsoft.com/python/api/azure-identity/azure.identity.defaultazurecredential).
 
 ## Optional Configuration
 
