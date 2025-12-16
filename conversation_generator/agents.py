@@ -45,7 +45,8 @@ class LLMClient:
         Raises:
             ImportError: If required Azure packages are not installed
         """
-        if DefaultAzureCredential is None or get_bearer_token_provider is None or AzureOpenAI is None:
+        required_imports = [DefaultAzureCredential, get_bearer_token_provider, AzureOpenAI]
+        if any(imp is None for imp in required_imports):
             raise ImportError(
                 "Azure OpenAI packages are required for AAD authentication. "
                 "Install with: pip install openai azure-identity"
