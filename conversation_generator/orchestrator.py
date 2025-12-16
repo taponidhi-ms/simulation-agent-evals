@@ -14,6 +14,10 @@ from .models import (
     PersonaTemplate, GenerationConfig
 )
 from .agents import CustomerAgent, CSRAgent
+from .logger import get_logger
+
+# Set up logger for this module
+logger = get_logger(__name__)
 
 
 class ConversationOrchestrator:
@@ -61,39 +65,52 @@ class ConversationOrchestrator:
             }
         )
         
+        logger.info(f"Starting conversation {conversation_id} with persona: {persona.name}")
+        logger.debug(f"Persona details - Goal: {persona.goal}, Tone: {persona.tone}, Complexity: {persona.complexity}")
+        
         # Customer starts the conversation
         try:
+            logger.debug("Customer initiating conversation...")
             customer_message = self._generate_customer_message(state)
             state.add_message(customer_message)
+            logger.info(f"Turn {state.turn_count}: Customer message added")
             
             # Conversation loop
             while state.status == ConversationStatus.ACTIVE:
                 # Check termination conditions
                 if self._should_terminate(state):
+                    logger.debug(f"Termination condition met at turn {state.turn_count}")
                     break
                 
                 # CSR responds
+                logger.debug("CSR generating response...")
                 csr_message = self._generate_csr_message(state)
                 state.add_message(csr_message)
+                logger.info(f"Turn {state.turn_count}: CSR message added")
                 
                 # Check if CSR escalated
                 if self.csr_agent.should_escalate(csr_message.content):
                     state.status = ConversationStatus.ESCALATED
                     state.resolution_reason = "Escalated to supervisor"
+                    logger.info(f"Conversation escalated at turn {state.turn_count}")
                     break
                 
                 # Check termination conditions again
                 if self._should_terminate(state):
+                    logger.debug(f"Termination condition met at turn {state.turn_count}")
                     break
                 
                 # Customer responds
+                logger.debug("Customer generating response...")
                 customer_message = self._generate_customer_message(state)
                 state.add_message(customer_message)
+                logger.info(f"Turn {state.turn_count}: Customer message added")
                 
                 # Check if customer is satisfied (simple heuristic)
                 if self._is_conversation_resolved(state):
                     state.status = ConversationStatus.RESOLVED
                     state.resolution_reason = "Issue resolved"
+                    logger.info(f"Conversation resolved at turn {state.turn_count}")
                     break
             
             # Set end time
@@ -103,11 +120,15 @@ class ConversationOrchestrator:
             if state.status == ConversationStatus.ACTIVE:
                 state.status = ConversationStatus.RESOLVED
                 state.resolution_reason = "Max turns reached"
+                logger.info(f"Conversation ended - max turns reached ({state.turn_count} turns)")
+            
+            logger.info(f"Conversation {conversation_id} completed with status: {state.status.value}")
             
         except Exception as e:
             state.status = ConversationStatus.FAILED
             state.resolution_reason = f"Error: {str(e)}"
             state.ended_at = datetime.now(timezone.utc)
+            logger.error(f"Conversation {conversation_id} failed: {e}", exc_info=True)
         
         return state
     

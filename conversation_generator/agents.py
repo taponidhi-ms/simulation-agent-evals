@@ -18,6 +18,10 @@ except ImportError:
 from .models import Message, Role, PersonaTemplate
 from .knowledge_base import KnowledgeBase
 from . import config
+from .logger import get_logger, log_llm_interaction
+
+# Set up logger for this module
+logger = get_logger(__name__)
 
 
 class LLMClient:
@@ -43,14 +47,14 @@ class LLMClient:
                 "Install with: pip install azure-ai-projects azure-identity"
             )
         
-        print("Initializing Azure OpenAI client with AAD authentication...")
+        logger.info("Initializing Azure OpenAI client with AAD authentication...")
         credential = DefaultAzureCredential()
         project_client = AIProjectClient(
             endpoint=azure_ai_project_endpoint,
             credential=credential
         )
         self.client = project_client.get_openai_client()
-        print("✓ Azure OpenAI client initialized successfully")
+        logger.info("✓ Azure OpenAI client initialized successfully")
     
     def generate(self, messages: List[Dict[str, str]], model: str,
                  temperature: float = 0.7, max_tokens: int = 500) -> str:
@@ -67,6 +71,7 @@ class LLMClient:
             Generated text response
         """
         try:
+            logger.debug(f"Generating LLM response with model={model}, temperature={temperature}, max_tokens={max_tokens}")
             response = self.client.chat.completions.create(
                 model=model,
                 messages=messages,
@@ -76,8 +81,10 @@ class LLMClient:
             content = response.choices[0].message.content
             if content is None:
                 raise RuntimeError("LLM returned empty response")
+            logger.debug(f"LLM response generated successfully ({len(content)} characters)")
             return content
         except Exception as e:
+            logger.error(f"LLM generation failed: {e}")
             raise RuntimeError(f"LLM generation failed: {e}")
 
 
@@ -129,12 +136,30 @@ class CustomerAgent:
             elif msg.role == Role.CSR:
                 messages.append({"role": "user", "content": f"CSR: {msg.content}"})
         
+        # Determine turn number
+        turn_number = len(conversation_history) + 1
+        
+        # Log the prompt being sent
+        logger.debug(f"Customer agent generating response for turn {turn_number}")
+        
         # Generate response
         response = self.llm_client.generate(
             messages=messages,
             model=self.model,
             temperature=self.temperature,
             max_tokens=self.max_tokens
+        )
+        
+        # Log the full LLM interaction for transcript viewing
+        prompt_text = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+        log_llm_interaction(
+            logger=logger,
+            agent_type="Customer",
+            prompt=prompt_text,
+            response=response,
+            model=self.model,
+            temperature=self.temperature,
+            turn_number=turn_number
         )
         
         return response.strip()
@@ -214,12 +239,30 @@ Guidelines:
             elif msg.role == Role.CSR:
                 messages.append({"role": "assistant", "content": msg.content})
         
+        # Determine turn number
+        turn_number = len(conversation_history) + 1
+        
+        # Log the prompt being sent
+        logger.debug(f"CSR agent generating response for turn {turn_number}")
+        
         # Generate response
         response = self.llm_client.generate(
             messages=messages,
             model=self.model,
             temperature=self.temperature,
             max_tokens=self.max_tokens
+        )
+        
+        # Log the full LLM interaction for transcript viewing
+        prompt_text = "\n".join([f"{m['role']}: {m['content']}" for m in messages])
+        log_llm_interaction(
+            logger=logger,
+            agent_type="CSR",
+            prompt=prompt_text,
+            response=response,
+            model=self.model,
+            temperature=self.temperature,
+            turn_number=turn_number
         )
         
         return response.strip()
